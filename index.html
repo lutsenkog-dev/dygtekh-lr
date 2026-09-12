@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №1 · Організація освітнього середовища в Google Classroom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1A2038;
+    --ink-2: #3D4C6B;
+    --ink-3: #6B7A99;
+    --surface: #F5F7FC;
+    --card: #FFFFFF;
+    --accent: #4F8EF7;
+    --accent-dim: #EBF2FF;
+    --accent-dark: #1A5FCC;
+    --new: #F59E0B;
+    --new-bg: #FFFBEB;
+    --new-border: #FCD34D;
+    --success: #10B981;
+    --success-bg: #ECFDF5;
+    --warn: #8B5CF6;
+    --warn-bg: #F5F3FF;
+    --border: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+    --shadow-md: 0 4px 16px rgba(26,32,56,.1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── PROGRESS BAR ─────────────────────────────────── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #818CF8);
+    width: 0%;
+    transition: width .2s ease;
+  }
+
+  /* ── HEADER ───────────────────────────────────────── */
+  .page-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(79,142,247,.25) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 900px; margin: 0 auto;
+    position: relative; z-index: 1;
+  }
+  .header-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(79,142,247,.18);
+    color: #93C5FD;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .06em;
+    padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .header-tag svg { width: 13px; height: 13px; }
+  .page-header h1 {
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: .5rem;
+  }
+  .header-sub {
+    color: #94A3B8;
+    font-size: 13.5px;
+  }
+  .header-meta {
+    display: flex; flex-wrap: wrap; gap: .75rem;
+    margin-top: 1.5rem;
+  }
+  .meta-chip {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    color: #CBD5E1;
+  }
+  .meta-chip svg { width: 14px; height: 14px; opacity: .7; }
+
+  /* ── LAYOUT ───────────────────────────────────────── */
+  .layout {
+    max-width: 980px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+    padding: 2rem 1.5rem 4rem;
+    align-items: start;
+  }
+
+  /* ── SIDEBAR NAV ──────────────────────────────────── */
+  .sidebar {
+    position: sticky; top: 1.5rem;
+  }
+  .nav-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: .6rem; padding-left: 2px;
+  }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+    cursor: pointer;
+  }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--border);
+    color: var(--ink-3);
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s, color .15s;
+  }
+  .nav-link.active .nav-num {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── MAIN CONTENT ─────────────────────────────────── */
+  .main { min-width: 0; }
+
+  /* ── SECTION ──────────────────────────────────────── */
+  .section {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 1.5rem;
+  }
+  .section-header {
+    display: flex; align-items: flex-start; gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-title {
+    font-size: 1.05rem; font-weight: 600; line-height: 1.35;
+    color: var(--ink);
+  }
+  .section-num {
+    font-size: 11px; font-weight: 600; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 2px;
+  }
+
+  /* ── STEP BLOCKS ──────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+
+  .step {
+    display: flex; gap: 1rem;
+    align-items: flex-start;
+  }
+  .step-marker {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    color: var(--ink-3);
+    font-size: 11.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-body { flex: 1; }
+  .step-title {
+    font-weight: 600; font-size: .875rem; margin-bottom: 3px;
+    color: var(--ink);
+  }
+  .step-body p, .step-body li {
+    font-size: .875rem;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .step-body ul {
+    list-style: none; margin-top: .4rem;
+  }
+  .step-body ul li {
+    padding-left: 1.1em;
+    position: relative;
+  }
+  .step-body ul li::before {
+    content: '–';
+    position: absolute; left: 0;
+    color: var(--ink-3);
+  }
+
+  /* ── NEW BADGE ────────────────────────────────────── */
+  .new-block {
+    background: var(--new-bg);
+    border: 1px solid var(--new-border);
+    border-radius: var(--radius);
+    padding: .875rem 1rem;
+    margin-top: .6rem;
+    display: flex; gap: .6rem;
+    align-items: flex-start;
+  }
+  .new-badge {
+    background: var(--new);
+    color: #fff;
+    font-size: 9.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  /* ── AI BLOCK (Gemini) ────────────────────────────── */
+  .ai-block {
+    background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%);
+    border: 1px solid #C7D7FC;
+    border-radius: var(--radius);
+    padding: .875rem 1rem;
+    margin-top: .6rem;
+    display: flex; gap: .75rem; align-items: flex-start;
+  }
+  .ai-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: #fff; font-size: 14px;
+  }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title {
+    font-size: .78rem; font-weight: 600;
+    color: var(--accent-dark);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(79,142,247,.12);
+    color: var(--accent-dark);
+    padding: 1px 5px; border-radius: 4px;
+    font-size: .82em;
+  }
+
+  /* ── TIP BLOCK ────────────────────────────────────── */
+  .tip-block {
+    background: var(--success-bg);
+    border: 1px solid #A7F3D0;
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    margin-top: .6rem;
+    display: flex; gap: .6rem; align-items: flex-start;
+  }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── WARN BLOCK ───────────────────────────────────── */
+  .warn-block {
+    background: var(--warn-bg);
+    border: 1px solid #DDD6FE;
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    margin-top: .6rem;
+    display: flex; gap: .6rem; align-items: flex-start;
+  }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* ── TABLE ────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin-top: .75rem; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: .84rem;
+  }
+  thead th {
+    background: var(--surface);
+    color: var(--ink-2);
+    font-weight: 600; font-size: .78rem;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: .6rem .875rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: .65rem .875rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface); }
+  .td-criterion { font-weight: 600; color: var(--ink); font-size: .84rem; }
+  .score-high { color: var(--success); font-weight: 600; }
+  .score-mid { color: var(--new); font-weight: 600; }
+  .score-low { color: #EF4444; font-weight: 600; }
+
+  /* ── TOPIC SELECTOR ───────────────────────────────── */
+  .topic-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: .6rem; margin-top: .75rem;
+  }
+  .topic-card {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    font-size: .85rem;
+    color: var(--ink-2);
+  }
+  .topic-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent-dark);
+  }
+  .topic-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent-dark);
+    font-weight: 600;
+  }
+  .topic-subject {
+    font-size: .72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3); margin-bottom: 2px;
+  }
+  .topic-card.selected .topic-subject { color: var(--accent); }
+
+  /* ── CHECKLIST ────────────────────────────────────── */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: .4rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .875rem; color: var(--ink-2);
+    cursor: pointer;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 2px solid var(--border-strong);
+    flex-shrink: 0; margin-top: 2px;
+    transition: background .15s, border-color .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .checklist li.done .check-box {
+    background: var(--success); border-color: var(--success);
+  }
+  .checklist li.done .check-box::after {
+    content: '';
+    width: 5px; height: 9px;
+    border: 2px solid #fff; border-top: none; border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+    display: block;
+  }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  /* ── REFLECTION ───────────────────────────────────── */
+  .reflection-list { list-style: none; counter-reset: ref-counter; }
+  .reflection-list li {
+    counter-increment: ref-counter;
+    display: flex; gap: .75rem; align-items: flex-start;
+    padding: .6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .875rem; color: var(--ink-2);
+  }
+  .reflection-list li:last-child { border-bottom: none; }
+  .reflection-list li::before {
+    content: counter(ref-counter);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--ink-3); font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── RESOURCES ────────────────────────────────────── */
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .875rem;
+  }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a {
+    color: var(--accent); text-decoration: none;
+    font-weight: 500;
+  }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; }
+  .res-desc { color: var(--ink-3); font-size: .8rem; margin-left: auto; }
+
+  /* ── AI COMPARISON BOX ────────────────────────────── */
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: .75rem; margin-top: .75rem;
+  }
+  .compare-card {
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+  .compare-card.left {
+    background: var(--accent-dim);
+    border-color: #C7D7FC;
+  }
+  .compare-card.right {
+    background: var(--warn-bg);
+    border-color: #DDD6FE;
+  }
+  .compare-label {
+    font-size: .75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .5rem;
+  }
+  .compare-card.left .compare-label { color: var(--accent-dark); }
+  .compare-card.right .compare-label { color: #5B21B6; }
+  .compare-card ul { list-style: none; }
+  .compare-card ul li {
+    font-size: .82rem; color: var(--ink-2);
+    padding: 3px 0;
+    padding-left: 1em; position: relative;
+  }
+  .compare-card.left ul li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); }
+  .compare-card.right ul li::before { content: '✓'; position: absolute; left: 0; color: var(--warn); }
+
+  /* ── DIVIDER ──────────────────────────────────────── */
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 1.25rem 0;
+  }
+
+  /* ── INLINE BADGE ─────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .badge.new { background: var(--new); color: #fff; }
+  .badge.ai  { background: var(--accent); color: #fff; }
+  .badge.key { background: var(--success); color: #fff; }
+
+  /* ── RESPONSIVE ───────────────────────────────────── */
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .topic-grid, .compare-grid { grid-template-columns: 1fr; }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, html { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ═══════════════════════════════ HEADER ═══════════ -->
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+      Лабораторна робота № 1
+    </div>
+    <h1>Організація освітнього середовища<br>в Google Classroom + Gemini AI</h1>
+    <p class="header-sub">Адаптована версія для профілю «Фізика та математика» · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        ~3 академічні години
+      </span>
+      <span class="meta-chip">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 4.5A1.5 1.5 0 013.5 3h9A1.5 1.5 0 0114 4.5v7A1.5 1.5 0 0112.5 13h-9A1.5 1.5 0 012 11.5v-7z" stroke="currentColor" stroke-width="1.4"/><path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Google Classroom · Gemini for Education
+      </span>
+      <span class="meta-chip">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L9.8 6.2H14.2L10.7 8.8L12.1 13L8 10.3L3.9 13L5.3 8.8L1.8 6.2H6.2L8 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Наскрізна тема курсу — обирається тут
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ LAYOUT ═══════════ -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ──────────────────────────────── -->
+  <nav class="sidebar" aria-label="Навігація по розділах">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3</a></li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · AI</a></li>
+      <li><a class="nav-link" href="#section-e6" onclick="setActive(this)"><span class="nav-num">8</span> Етап 6</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── MAIN ─────────────────────────────────── -->
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Що ви освоїте і навіщо</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Ця робота запускає ваш наскрізний педагогічний проєкт — навчальний курс з фізики або математики, який ви розвиватимете протягом усього семестру. Паралельно ви вперше доторкнетесь до <strong>Gemini for Education</strong> — вбудованого AI-інструменту Google Workspace, який вже доступний у вашому акаунті.</p>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:.6rem;">
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">🏗️</span>
+          <p><strong>Організація середовища</strong> — налаштувати Google Classroom: комунікація, структура, розклад публікацій, диференціація</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">🤖</span>
+          <p><strong>AI у роботі вчителя</strong> — вперше використати Gemini for Education для генерації рубрики та порівняти з ручним підходом</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">📐</span>
+          <p><strong>Предметна специфіка</strong> — як правильно розміщувати формули, графіки та задачі в цифровому середовищі</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">⚖️</span>
+          <p><strong>Прозоре оцінювання</strong> — рубрика для задачі, перевірка на плагіат, журнал оцінок</p>
+        </div>
+      </div>
+
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">✦</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Нове у цій версії</p>
+          <p>До роботи інтегровано <strong>Gemini for Education</strong> — AI-хаб Google, вбудований безпосередньо у Google Workspace for Education. Ви генеруватимете чернетку рубрики оцінювання через AI, а потім редагуватимете її під предмет. Це формує ключовий рефлекс: <em>AI — автор чернетки, вчитель — відповідальний редактор.</em></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій і вибір теми</h2>
+        </div>
+      </div>
+
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Ви — вчитель фізики або математики, який запускає дистанційний курс. Google Classroom — не сховище файлів, а <strong>повноцінне навчальне середовище</strong>. Ваше завдання: налаштувати його так, щоб учень відчував структуру, розклад і присутність вчителя — навіть без синхронної зустрічі.</p>
+
+      <div class="warn-block">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⭐</span>
+        <p><strong>Важливо:</strong> тема, яку ви оберете зараз, буде <strong>наскрізною для всіх ЛР курсу</strong>. Оберіть те, що вам справді цікаво викладати — ви будете повертатися до неї у кожній наступній роботі.</p>
+      </div>
+
+      <p style="font-size:.84rem; color:var(--ink-3); margin: 1rem 0 .5rem;">Оберіть предмет і запишіть тему:</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:.6rem; margin-bottom:.75rem;">
+        <label id="subj-phys" style="border:2px solid var(--border); border-radius:var(--radius); padding:.65rem 1rem; cursor:pointer; transition:border-color .15s, background .15s; font-size:.875rem; color:var(--ink-2); text-align:center;">
+          <input type="radio" name="subject" value="Фізика" style="display:none;" onchange="onSubjectChange('subj-phys')">
+          🔭 Фізика
+        </label>
+        <label id="subj-math" style="border:2px solid var(--border); border-radius:var(--radius); padding:.65rem 1rem; cursor:pointer; transition:border-color .15s, background .15s; font-size:.875rem; color:var(--ink-2); text-align:center;">
+          <input type="radio" name="subject" value="Математика" style="display:none;" onchange="onSubjectChange('subj-math')">
+          📐 Математика
+        </label>
+        <label id="subj-cs" style="border:2px solid var(--border); border-radius:var(--radius); padding:.65rem 1rem; cursor:pointer; transition:border-color .15s, background .15s; font-size:.875rem; color:var(--ink-2); text-align:center;">
+          <input type="radio" name="subject" value="Інформатика" style="display:none;" onchange="onSubjectChange('subj-cs')">
+          💻 Інформатика
+        </label>
+      </div>
+
+      <div style="display:flex; gap:.6rem; align-items:center;">
+        <input id="topic-input" type="text"
+          placeholder="Наприклад: Кінематика. 9 клас"
+          oninput="onTopicInput()"
+          style="flex:1; border:2px solid var(--border); border-radius:var(--radius); padding:.6rem .875rem; font-family:inherit; font-size:.875rem; color:var(--ink); outline:none; transition:border-color .15s;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'">
+        <button onclick="confirmTopic()" style="background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:.6rem 1.1rem; font-family:inherit; font-size:.875rem; font-weight:600; cursor:pointer; white-space:nowrap;">Зафіксувати</button>
+      </div>
+
+      <div id="topic-selected" style="display:none; margin-top:.75rem;" class="tip-block">
+        <span class="tip-icon">✅</span>
+        <p>Ваша тема: <strong id="topic-name"></strong>. Зафіксуйте її — вона знадобиться в усіх наступних роботах.</p>
+      </div>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Підготуйте все до початку заняття:</p>
+      <ul class="checklist" id="prelab-list">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Обрати тему курсу (з фізики або математики — з переліку вище)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підготувати <strong>конспект лекції з формулами та/або графіками</strong> (PDF або DOCX) і зберегти на Google Диску</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Знайти посилання на тематичне YouTube-відео і зберегти окремо</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підготувати ідею або зображення для обкладинки курсу</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Домовитися з одногрупником про взаємне тестування <em>або</em> підготувати другий Google-акаунт</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Переконатись, що є доступ до <strong>Gemini for Education</strong> — відкрийте <a href="https://workspace.google.com/products/gemini" target="_blank" style="color:var(--accent)">workspace.google.com</a> і знайдіть розділ для викладачів</span></li>
+      </ul>
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ВАЖЛИВО</span>
+        <p>Конспект <strong>обов'язково</strong> має містити формули та/або графіки — не звичайний текст. На Етапі 3.4 ви перевірите, як такий контент відображається у Classroom. Це реальна методична проблема точних наук, з якою варто зіткнутись одразу.</p>
+      </div>
+    </section>
+
+    <!-- ЕТАП 1 -->
+    <section class="section" id="section-e1">
+      <div class="section-header">
+        <div class="section-icon blue">⚙️</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Базові налаштування курсу та комунікація</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Вхід у Google Classroom</p>
+            <p>Перейдіть на <a href="https://classroom.google.com" target="_blank" style="color:var(--accent)">classroom.google.com</a> з корпоративного університетського акаунту.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Створення нового курсу</p>
+            <p>Натисніть «+» → «Створити курс». Назва: <em>«[Предмет]. [Клас] – [Ваше прізвище]»</em>, наприклад: <em>«Фізика. 9 клас – Іваненко»</em>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.3</span>
+          <div class="step-body">
+            <p class="step-title">Обкладинка курсу</p>
+            <p>Завантажте власне зображення або оберіть з галереї. Тематичне зображення формує перше враження учня — воно має відповідати предмету.</p>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>У наступній ЛР ви створите банер у Canva через AI. Зараз можна використати тимчасове зображення.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.4</span>
+          <div class="step-body">
+            <p class="step-title">Налаштування Google Meet</p>
+            <p>Налаштування курсу (⚙️) → «Створити посилання Meet» → увімкнути «Відображається студентам». Постійне посилання — учні не шукатимуть нове кожного разу.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.5</span>
+          <div class="step-body">
+            <p class="step-title">Права у Стрічці</p>
+            <p>Налаштування → «Стрічка» → «Студенти можуть лише коментувати». Це запобігає безладу в оголошеннях.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.6</span>
+          <div class="step-body">
+            <p class="step-title">Привітальне повідомлення</p>
+            <p>У вкладці «Стрічка» створіть повідомлення: коротко опишіть теми курсу, дедлайни, правила роботи. Додайте зображення або GIF для живості.</p>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>Включіть у привітання короткий опис тем модуля і організаційну інформацію (дедлайни, правила роботи). Це задає структуру з першого дня і знімає типові запитання від учнів.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.7</span>
+          <div class="step-body">
+            <p class="step-title">Запрошення учасників</p>
+            <p>Вкладка «Люди» → запросіть 2–3 одногрупників через корпоративний email або через код курсу. Для тестування ввійдіть також з особистого акаунту.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 2 -->
+    <section class="section" id="section-e2">
+      <div class="section-header">
+        <div class="section-icon blue">🗂️</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Архітектура курсу — вкладка «Завдання»</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Перейдіть на вкладку «Завдання» і створіть структуру курсу з тем. Теми — це розділи, які учень бачить в одному вікні. Вони мають відображати логіку навчального процесу, а не хаотичний набір матеріалів.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">2.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть щонайменше три теми</p>
+            <ul>
+              <li><strong>Тема 1.</strong> Організаційні матеріали (силабус, правила роботи, критерії оцінювання)</li>
+              <li><strong>Тема 2.</strong> [Назва вашого розділу / теми] — теоретичні матеріали, відео, посилання на Desmos/GeoGebra</li>
+              <li><strong>Тема 3.</strong> Практичні та лабораторні роботи (умови задач, інструкції до лабораторних, бланки звітів)</li>
+            </ul>
+            <div class="tip-block" style="margin-top:.6rem;">
+              <span class="tip-icon">💡</span>
+              <p>Для школи логічніша структура — <em>за видами навчальної діяльності</em> (теорія / практика / контроль), а не за датами. Учень одразу розуміє, де шукати потрібний тип матеріалу.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.2</span>
+          <div class="step-body">
+            <p class="step-title">Розставте теми у правильному порядку</p>
+            <p>Перетягніть теми в логічній послідовності — «Організаційні матеріали» завжди першими: учень починає з розуміння правил гри.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 3 -->
+    <section class="section" id="section-e3">
+      <div class="section-header">
+        <div class="section-icon blue">📎</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Наповнення та керування публікаціями</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Теоретичний матеріал до уроку</p>
+            <p>У темі розділу створіть об'єкт «Матеріал»: назва — «Урок. [Тема]» або «Теорія: [назва поняття/закону]», опис з 2–3 речень і інструкцією для учня, вкладення — підготовлений PDF-конспект. Окремим матеріалом додайте посилання на YouTube-відео з орієнтувальним запитанням в описі.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>У шкільному контексті «лекція» — нетиповий формат. Матеріал краще назвати «Опорний конспект», «Теорія до уроку» або «Пояснення теми» — це звичніша мова для учнів середньої школи.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Відкладений постинг (Schedule)</p>
+            <p>При створенні будь-якого матеріалу замість «Опублікувати» натисніть стрілку поруч → «Запланувати». Встановіть завтрашню дату, 08:00. Переконайтесь, що статус — «Заплановано» (сірий колір). Учні побачать матеріал лише у визначений час.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.3</span>
+          <div class="step-body">
+            <p class="step-title">Рефлексивне запитання</p>
+            <p>Додайте завдання типу «Запитання»: <em>«Що для вас було найскладнішим у цій темі?»</em>, тип відповіді — «Коротка відповідь». За потреби вимкніть «Студенти можуть відповідати один одному».</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.4</span>
+          <div class="step-body">
+            <p class="step-title">Формули та інтерактивні ресурси <span class="badge new">KEY</span></p>
+            <p>Завантажте конспект з формулами (PDF) і перегляньте його у вбудованому переглядачі без завантаження — оцініть якість відображення індексів, дробів, грецьких символів. Додайте окремим матеріалом посилання на <a href="https://www.desmos.com" target="_blank" style="color:var(--accent)">Desmos</a> або <a href="https://www.geogebra.org" target="_blank" style="color:var(--accent)">GeoGebra</a>.</p>
+            <div class="new-block">
+              <span class="new-badge">NEW</span>
+              <p>В описі ресурсу сформулюйте конкретне дослідницьке завдання, наприклад: <em>«Відкрийте графік. Змінюйте коефіцієнт a від −3 до 3 і спостерігайте, як це впливає на параболу. Запишіть закономірність.»</em> — учень не просто «переглядає посилання», а проводить мікродослідження.</p>
+            </div>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">📝</span>
+              <p>У звіті зафіксуйте: чи виникли труднощі з відображенням формул і як інтерактивний ресурс компенсує обмеження статичного PDF.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 4 -->
+    <section class="section" id="section-e4">
+      <div class="section-header">
+        <div class="section-icon green">👥</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Диференціація навчання</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Диференціація — це не «легше / важче», а відповідність завдання актуальному рівню учня. Google Classroom дозволяє призначати завдання конкретним учням, і це вже є персоналізація.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Індивідуальне завдання підвищеної складності</p>
+            <p>Створіть «Завдання» → «Індивідуальний проєкт». Наповнення:</p>
+            <div class="new-block">
+              <span class="new-badge">NEW</span>
+              <p><strong>Фізика:</strong> задача олімпіадного рівня або домашній мікроексперимент з описом методики та очікуваних вимірювань. <strong>Математика:</strong> задача профільного/олімпіадного рівня, що виходить за межі базової програми. Не абстрактне «складніше завдання» — а конкретний предметний виклик.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Призначення одному студенту</p>
+            <p>У налаштуваннях завдання (праворуч) → «Призначити для» → зніміть «Усі студенти» → залиште галочку тільки навпроти одного одногрупника. Встановіть дедлайн — тиждень від сьогодні. Натисніть «Призначити».</p>
+            <div class="tip-block">
+              <span class="tip-icon">✅</span>
+              <p>Перевірте результат: ввійдіть з іншого акаунту і переконайтесь, що завдання <strong>не видно</strong> іншим студентам.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 5 (AI) -->
+    <section class="section" id="section-e5">
+      <div class="section-header">
+        <div class="section-icon blue">✦</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Система оцінювання з Gemini for Education</h2>
+        </div>
+      </div>
+
+      <div class="ai-block">
+        <div class="ai-icon">✦</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Gemini for Education — що це і навіщо</p>
+          <p>Це AI-хаб, вбудований у Google Workspace for Education. На відміну від зовнішнього Gemini, він одразу знає контекст освітнього процесу і пропонує шаблони, заточені під педагогічні задачі: планування, оцінювання, диференціацію, підтримку студентів.</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть підсумкове завдання</p>
+            <p>Перейдіть на вкладку «Завдання» → «+ Створити» → «Завдання». Назва: <em>«Підсумкова робота: [тема]»</em>. У полі «Бали» встановіть 12.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Згенеруйте рубрику прямо у формі завдання</p>
+            <p>У правій панелі форми завдання знайдіть блок <strong>«Категорія»</strong> → натисніть <strong>«+ Категорія»</strong> → оберіть <strong>«Створити нові»</strong> (з іконкою ✏️). Відкриється редактор рубрики. Натисніть кнопку <strong>«Gemini»</strong> (або «Запропонувати критерії») — AI згенерує чернетку критеріїв на основі назви завдання.</p>
+            <div class="ai-block" style="margin-top:.6rem;">
+              <div class="ai-icon">✦</div>
+              <div class="ai-block-inner">
+                <p class="ai-block-title">Що відбувається під капотом</p>
+                <p>Gemini читає назву вашого завдання і автоматично пропонує критерії оцінювання, рівні та бали. Чим конкретніша назва завдання — тим точніша чернетка. Порівняйте: <code>«Розв'язання задачі»</code> vs <code>«Розв'язання задачі на закони Ньютона»</code>.</p>
+              </div>
+            </div>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">УВАГА</span>
+              <p>Не приймайте чернетку без перевірки. Критично перегляньте: чи відповідають критерії вашій темі? Чи правильно розподілені бали? Чи є критерій перевірки одиниць виміру (для фізики)?</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.3</span>
+          <div class="step-body">
+            <p class="step-title">Відредагуйте рубрику під свою задачу</p>
+            <p>Скоригуйте згенеровані критерії або скористайтесь орієнтовним зразком нижче. Порівняйте у звіті: що AI запропонував і що ви врешті затвердили.</p>
+
+            <p style="font-size:.8rem; color:var(--ink-3); margin:.75rem 0 .4rem;">Орієнтовний зразок рубрики (12 балів):</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Критерій</th>
+                    <th>Макс.</th>
+                    <th>Високий</th>
+                    <th>Середній</th>
+                    <th>Низький</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-criterion">1. Розуміння суті задачі</td>
+                    <td><span class="score-high">6</span></td>
+                    <td>5–6 б. Правильно визначено метод/формулу, обґрунтовано вибір підходу</td>
+                    <td>3–4 б. Метод частково вірний, є неточності</td>
+                    <td>1–2 б. Метод невірний або відсутнє обґрунтування</td>
+                  </tr>
+                  <tr>
+                    <td class="td-criterion">2. Хід розв'язання та розрахунки</td>
+                    <td><span class="score-mid">4</span></td>
+                    <td>3–4 б. Послідовний, безпомилковий хід, одиниці вказано коректно</td>
+                    <td>2 б. 1–2 обчислювальні помилки, логіка в цілому вірна</td>
+                    <td>0–1 б. Хід нелогічний, грубі помилки</td>
+                  </tr>
+                  <tr>
+                    <td class="td-criterion">3. Оформлення та аналіз</td>
+                    <td><span class="score-low">2</span></td>
+                    <td>2 б. Результат проаналізовано, є висновок із предметним сенсом</td>
+                    <td>1 б. Є формальний висновок без аналізу</td>
+                    <td>0 б. Висновок відсутній</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.4</span>
+          <div class="step-body">
+            <p class="step-title">Перевірка на оригінальність (плагіат)</p>
+            <p>У налаштуваннях завдання знайдіть опцію <strong>«Перевірка на оригінальність»</strong> і увімкніть її. Classroom автоматично порівнюватиме відповіді учнів із веб-джерелами та роботами інших учнів курсу.</p>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💬</span>
+              <p><strong>Коли це доречно:</strong> для письмових відповідей, есе, звітів, висновків. <strong>Менш актуально</strong> для числових розрахунків і задач з конкретними відповідями — там важливіша перевірка ходу розв'язання, а не тексту. Вирішуйте залежно від типу завдання.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <p style="font-size:.84rem; font-weight:600; color:var(--ink); margin-bottom:.5rem;">AI-рубрика vs. ручна рубрика — що порівняти у звіті:</p>
+      <div class="compare-grid">
+        <div class="compare-card left">
+          <p class="compare-label">✦ Переваги Gemini for Education</p>
+          <ul>
+            <li>Швидко генерує структуру</li>
+            <li>Враховує педагогічний контекст</li>
+            <li>Знає стандартні формати рубрик</li>
+            <li>Пропонує формулювання рівнів</li>
+          </ul>
+        </div>
+        <div class="compare-card right">
+          <p class="compare-label">⚠ Що зазвичай потребує правки</p>
+          <ul>
+            <li>Специфіка конкретної теми</li>
+            <li>Точні назви формул і законів</li>
+            <li>Критерій перевірки одиниць (фізика)</li>
+            <li>Розподіл балів під реальну задачу</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 6 -->
+    <section class="section" id="section-e6">
+      <div class="section-header">
+        <div class="section-icon green">🔗</div>
+        <div>
+          <p class="section-num">Етап 6</p>
+          <h2 class="section-title">Перевірка інтеграцій</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">6.1</span>
+          <div class="step-body">
+            <p class="step-title">Календар дедлайнів</p>
+            <p>На головній сторінці Classroom знайдіть «Календар» у лівій панелі — переконайтесь, що дедлайни завдань автоматично з'явились. Учні бачать той самий календар у своєму акаунті.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.2</span>
+          <div class="step-body">
+            <p class="step-title">Журнал оцінок</p>
+            <p>Вкладка «Оцінки» — перегляньте структуру журналу для доданих завдань. Зверніть увагу: рубрика відображається у стовпці завдання як окрема колонка критеріїв.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.3</span>
+          <div class="step-body">
+            <p class="step-title">Фінальна перевірка «очима учня»</p>
+            <p>Ввійдіть з іншого акаунту і перевірте: чи видно заплановані матеріали? Чи відкривається посилання на Desmos/GeoGebra? Чи видно рубрику у завданні? Чи не видно індивідуальне завдання іншим?</p>
+            <div class="warn-block">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">👁️</span>
+              <p>Погляд «очима учня» — обов'язковий методичний прийом. Те, що правильно налаштовано з боку вчителя, не завжди правильно виглядає з боку учня.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <ul class="checklist" id="report-list">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Привітальне повідомлення у Стрічці (скріншот або посилання на курс)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Активне посилання на Google Meet (скріншот налаштувань)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Запланований матеріал зі статусом «Заплановано» (скріншот)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Матеріал із посиланням на Desmos або GeoGebra з дослідницьким завданням в описі</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Індивідуальне завдання підвищеної складності з предметним змістом, призначене одному студенту</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підсумкове завдання з прикріпленою рубрикою (перевірка на оригінальність — якщо завдання передбачає письмову відповідь)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai">AI</span> Скріншот чернетки рубрики з Gemini for Education + відредагована фінальна версія</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Короткий висновок (2–3 речення): що AI згенерував добре, а що довелося виправити вручну</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Короткий висновок (2–3 речення): як відображаються формули/графіки у Classroom і як Desmos/GeoGebra компенсує обмеження PDF</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ (відповідно до Політики курсу)</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Відповіді на ці питання — частина вашого звіту. Це не тест, а осмислення досвіду.</p>
+      <ol class="reflection-list">
+        <li>Яку функцію виконує Стрічка у комунікації з класом? Чому важливо написати вступне слово, а не просто «кинути» файли?</li>
+        <li>У яких педагогічних ситуаціях доцільно призначати завдання окремим учням, а не всьому класу?</li>
+        <li>Як наявність рубрики оцінювання змінює розуміння завдання для учня ще до початку роботи?</li>
+        <li>Що Gemini for Education згенерував у рубриці добре, а що довелося виправити? Чи було виправлення пов'язане з предметною специфікою?</li>
+        <li>Які особливості має розміщення фізико-математичного контенту (формули, графіки) в Classroom порівняно з гуманітарними предметами? Як Desmos і GeoGebra змінюють ситуацію?</li>
+        <li>Чи готові ви використовувати Gemini for Education регулярно? Які задачі ви б йому делегували, а які — ні?</li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li>
+          <span class="res-icon">📘</span>
+          <div>
+            <a href="https://support.google.com/edu/classroom" target="_blank">Довідка Google Classroom</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Офіційна документація українською</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">✦</span>
+          <div>
+            <a href="https://workspace.google.com/products/gemini" target="_blank">Gemini for Education</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">AI-інструменти для викладачів у Google Workspace</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">📐</span>
+          <div>
+            <a href="https://www.desmos.com/calculator" target="_blank">Desmos Graphing Calculator</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Побудова графіків, дослідження функцій</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">📏</span>
+          <div>
+            <a href="https://www.geogebra.org" target="_blank">GeoGebra</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Геометрія, стереометрія, фізичне моделювання</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">🔢</span>
+          <div>
+            <a href="https://editor.codecogs.com" target="_blank">CodeCogs LaTeX Editor</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Генерація зображень формул для вставки в документи</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">🎓</span>
+          <div>
+            <a href="https://support.google.com/edu/classroom/answer/9184995" target="_blank">Критерії оцінювання в Classroom</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Покрокова інструкція з рубриками</div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="warn-block" style="margin-top:1rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+        <p><strong>Ліміти безкоштовного доступу:</strong> Google Classroom і Gemini for Education доступні без обмежень у межах університетського акаунту Google Workspace for Education. Desmos і GeoGebra — повністю безкоштовні. CodeCogs — без реєстрації.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ── PROGRESS BAR
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    bar.style.width = Math.min(pct, 100) + '%';
+  });
+
+  // ── NAV ACTIVE
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── INTERSECTION OBSERVER for auto-active nav
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // ── SUBJECT SELECTOR
+  function onSubjectChange(labelId) {
+    ['subj-phys','subj-math','subj-cs'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.borderColor = 'var(--border)';
+      el.style.background = '';
+      el.style.color = 'var(--ink-2)';
+      el.style.fontWeight = '';
+    });
+    const el = document.getElementById(labelId);
+    el.style.borderColor = 'var(--accent)';
+    el.style.background = 'var(--accent-dim)';
+    el.style.color = 'var(--accent-dark)';
+    el.style.fontWeight = '600';
+  }
+
+  function onTopicInput() {
+    const val = document.getElementById('topic-input').value.trim();
+    if (val) {
+      document.getElementById('topic-selected').style.display = 'none';
+    }
+  }
+
+  function confirmTopic() {
+    const subjectEl = document.querySelector('input[name="subject"]:checked');
+    const topicVal = document.getElementById('topic-input').value.trim();
+    if (!topicVal) {
+      document.getElementById('topic-input').style.borderColor = '#EF4444';
+      document.getElementById('topic-input').placeholder = 'Будь ласка, введіть тему курсу';
+      return;
+    }
+    document.getElementById('topic-input').style.borderColor = 'var(--success)';
+    const subject = subjectEl ? subjectEl.value + ' · ' : '';
+    document.getElementById('topic-name').textContent = subject + topicVal;
+    document.getElementById('topic-selected').style.display = 'flex';
+  }
+
+  // ── CHECKLIST TOGGLE
+  function toggleCheck(li) {
+    li.classList.toggle('done');
+  }
+</script>
+</body>
+</html>
