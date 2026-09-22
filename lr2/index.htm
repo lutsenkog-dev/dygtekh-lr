@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №2 · ШІ в освіті: генерація контенту та персоналізовані асистенти</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--accent), #818CF8); width: 0%; transition: width .2s ease; }
+
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(79,142,247,.25) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 2rem 1.5rem 4rem; align-items: start; }
+
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s, color .15s; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+
+  .main { min-width: 0; }
+
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p, .step-body li { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { padding-left: 1.1em; position: relative; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* ── PROMPT BLOCK ─────────────────────────────────── */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; transition: background .15s; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* ── MATRIX TABLE ─────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin-top: .75rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  thead th { background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; padding: .6rem .875rem; text-align: left; border-bottom: 2px solid var(--border); }
+  tbody td { padding: .6rem .875rem; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: top; line-height: 1.5; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface); }
+  .td-var { font-weight: 700; color: var(--accent); text-align: center; }
+
+  /* ── GEM TEMPLATE ─────────────────────────────────── */
+  .gem-template { background: #0F172A; border-left: 3px solid var(--warn); border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; }
+  .gem-template p { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: #C4B5FD; line-height: 1.7; }
+  .gem-template em { color: #FCD34D; font-style: normal; }
+  .gem-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #7C3AED; margin-bottom: .5rem; }
+
+  /* ── CHECKLIST ────────────────────────────────────── */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai { background: var(--accent); color: #fff; }
+  .badge.key { background: var(--success); color: #fff; }
+  .badge.warn { background: var(--warn); color: #fff; }
+
+  .reflection-list { list-style: none; counter-reset: ref-counter; }
+  .reflection-list li { counter-increment: ref-counter; display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .reflection-list li::before { content: counter(ref-counter); width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── PARTS/RTF comparison ─────────────────────────── */
+  .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
+  .model-card { border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem; }
+  .model-card.rtf { background: var(--accent-dim); border-color: #C7D7FC; }
+  .model-card.parts { background: var(--warn-bg); border-color: #DDD6FE; }
+  .model-card-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .5rem; }
+  .model-card.rtf .model-card-label { color: var(--accent-dark); }
+  .model-card.parts .model-card-label { color: #5B21B6; }
+  .model-card ul { list-style: none; }
+  .model-card ul li { font-size: .82rem; color: var(--ink-2); padding: 3px 0 3px 1em; position: relative; }
+  .model-card ul li::before { content: '→'; position: absolute; left: 0; color: var(--ink-3); }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .model-grid { grid-template-columns: 1fr; }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">
+      <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+      Лабораторна робота № 2
+    </div>
+    <h1>ШІ в освіті: генерація методичного контенту<br>та персоналізовані асистенти (Gemini Gems)</h1>
+    <p class="header-sub">Адаптована версія для профілю «Фізика та математика» · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~3 академічні години</span>
+      <span class="meta-chip">🛠 Gemini · Gemini Gems · Google Classroom</span>
+      <span class="meta-chip">🔗 Наскрізна тема з ЛР №1</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <nav class="sidebar" aria-label="Навігація по розділах">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · Урок</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · Матриця</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · Gem</a></li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Classroom</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Валідація</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Що ви освоїте і навіщо</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">У цій роботі ви пройдете <strong>повний цикл роботи з генеративним ШІ</strong> — від створення плану уроку та дидактичних матеріалів через промпт-інжиніринг до розробки власного Gem-асистента і його інтеграції в Google Classroom.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">✍️</span>
+          <p><strong>Промпт-інжиніринг</strong> — моделі RTF і PARTS для генерації плану уроку та дидактичних матеріалів</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">🤖</span>
+          <p><strong>Gemini Gems</strong> — налаштування власного ШІ-асистента з поведінковою інструкцією для учнів</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">🔗</span>
+          <p><strong>Інтеграція</strong> — розміщення Gem у Google Classroom як педагогічного інструменту 24/7</p>
+        </div>
+        <div class="tip-block" style="margin-top:0;">
+          <span class="tip-icon">🔍</span>
+          <p><strong>Валідація</strong> — обов'язкова ручна перевірка обчислень і формул, згенерованих ШІ</p>
+        </div>
+      </div>
+
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">✦</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Ключова ідея роботи</p>
+          <p>AI — генератор чернеток і структур. Вчитель — відповідальний редактор і верифікатор. Особливо критично це для точних наук: генеративні моделі системно частіше помиляються в обчисленнях і формулах, ніж у зв'язному тексті.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Ви продовжуєте розробку дистанційного курсу з фізики, математики або інформатики (тема — з Лабораторної роботи №1). Перед вами стоїть подвійне завдання:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:.5rem;">
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--accent-dim); color:var(--accent); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px;">1</span>
+          <span><strong>Швидко підготувати «начинку» для уроку</strong> — план заняття та практичні завдання (задачі, дослідження, пояснення складних понять), щоб зацікавити учнів.</span>
+        </li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--warn-bg); color:var(--warn); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px;">2</span>
+          <span><strong>Створити «цифрового тьютора» (Gem)</strong> — бот допоможе учням підготуватися до уроку вдома: потренуватися в розв'язанні задач за алгоритмом або перевірити себе, знімаючи навантаження з вчителя.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до <strong>Gemini</strong> з функцією Gems (<a href="https://gemini.google.com" target="_blank" style="color:var(--accent)">gemini.google.com</a>) — перевірте, що в меню зліва є розділ «Gems»</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати відкритий Google Classroom з ЛР №1 — він знадобиться на Етапі 4</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Знати свій <strong>номер варіанту</strong> (від 1 до 10) — він визначає завдання у Методичній матриці на Етапі 2</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Пригадати тему курсу з ЛР №1 — вона буде основою для всіх промптів цієї роботи</span></li>
+      </ul>
+    </section>
+
+    <!-- ЕТАП 1 -->
+    <section class="section" id="section-e1">
+      <div class="section-header">
+        <div class="section-icon blue">✍️</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Генерація плану уроку</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Відкрийте <a href="https://gemini.google.com" target="_blank" style="color:var(--accent)">gemini.google.com</a>. Сформулюйте промпт для створення плану уроку, використовуючи одну з двох моделей.</p>
+
+      <div class="model-grid">
+        <div class="model-card rtf">
+          <p class="model-card-label">Модель RTF — для швидких результатів</p>
+          <ul>
+            <li><strong>R</strong> — Role: хто відповідає? («Ти досвідчений методист з фізики»)</li>
+            <li><strong>T</strong> — Task: що зробити? («Склади план уроку на тему…»)</li>
+            <li><strong>F</strong> — Format: у якому вигляді? («У вигляді таблиці з таймінгом»)</li>
+          </ul>
+        </div>
+        <div class="model-card parts">
+          <p class="model-card-label">Модель PARTS — для складних завдань</p>
+          <ul>
+            <li><strong>P</strong> — Persona: роль ШІ («Ти вчитель-новатор з математики»)</li>
+            <li><strong>A</strong> — Audience: для кого? («Учні 9 класу»)</li>
+            <li><strong>R</strong> — Rules: обмеження («45 хв, практичні задачі»)</li>
+            <li><strong>T</strong> — Task: суть завдання</li>
+            <li><strong>S</strong> — Style: тон («Захопливий, з чіткою логікою»)</li>
+          </ul>
+        </div>
+      </div>
+
+      <p style="font-size:.8rem; color:var(--ink-3); margin:.75rem 0 .3rem; font-weight:600;">Зразок промпту (адаптуйте під свою тему):</p>
+      <div class="prompt-block">
+        <p class="prompt-label">Промпт · RTF</p>
+        <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+        <p class="prompt-text">Ти – досвідчений вчитель <em>[фізики / математики / інформатики]</em>.
+Склади план уроку на тему <em>«[ваша тема з ЛР №1]»</em>
+для <em>[клас]</em> класу.
+Мета: навчити застосовувати <em>[закон / формулу / метод]</em> до розв'язання задач.
+Формат: таблиця з таймінгом на 45 хв із колонками:
+Етап | Зміст | Час | Форма роботи.</p>
+      </div>
+
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ВАЖЛИВО</span>
+        <p>Зберігайте <strong>скріншоти промптів і відповідей Gemini</strong> — вони є обов'язковою частиною звіту. Якщо відповідь не задовольняє, уточніть промпт (наприклад: «Додай більше практичних завдань» або «Скороти теоретичний блок до 10 хвилин»).</p>
+      </div>
+    </section>
+
+    <!-- ЕТАП 2 -->
+    <section class="section" id="section-e2">
+      <div class="section-header">
+        <div class="section-icon purple">📊</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Методична матриця — генерація активностей</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Згенеруйте за допомогою Gemini три елементи для вашої теми відповідно до <strong>номера варіанту</strong>. Матриця адаптована під фізико-математичний профіль: задачі, алгоритми самоперевірки, наукові пояснення.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:80px;">Варіант</th>
+              <th>Завдання 1: Практична активність</th>
+              <th>Завдання 2: Інструмент оцінювання</th>
+              <th>Завдання 3: Пояснювальний формат</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-var">1, 6</td>
+              <td>5 задач зростаючої складності на тему</td>
+              <td>Чек-лист самоперевірки розв'язання (алгоритм кроків)</td>
+              <td>Пояснення теми через аналогію або метафору з побуту</td>
+            </tr>
+            <tr>
+              <td class="td-var">2, 7</td>
+              <td>Кейс із побутовою задачею (реальна фізична / математична ситуація)</td>
+              <td>Рубрика оцінювання розв'язку задачі</td>
+              <td>Пояснення теми «від імені вченого» (Ньютон, Ейлер, Кюрі)</td>
+            </tr>
+            <tr>
+              <td class="td-var">3, 8</td>
+              <td>Задача з навмисною помилкою для пошуку (учень знаходить неточність)</td>
+              <td>Критерії оцінювання лабораторної / групового проєкту</td>
+              <td>3 задачі на одне рівняння/закон, але в різному контексті</td>
+            </tr>
+            <tr>
+              <td class="td-var">4, 9</td>
+              <td>Міні-дослідження (експеримент або обчислювальна задача)</td>
+              <td>Форма взаємоперевірки розв'язків (Peer review)</td>
+              <td>Серія запитань «Чому це працює саме так?» для сократівського діалогу</td>
+            </tr>
+            <tr>
+              <td class="td-var">5, 10</td>
+              <td>Задача на застосування формули в нестандартній ситуації</td>
+              <td>Шкала впевненості учня в розв'язку (рефлексія)</td>
+              <td>Пояснення закону / похідної через анімовану аналогію (текстовий опис для відео)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tip-block" style="margin-top:.75rem;">
+        <span class="tip-icon">💾</span>
+        <p>Збережіть отримані тексти — один із них стане «базою знань» для вашого Gem-бота на Етапі 3.</p>
+      </div>
+    </section>
+
+    <!-- ЕТАП 3 -->
+    <section class="section" id="section-e3">
+      <div class="section-header">
+        <div class="section-icon blue">🤖</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Створення Gemini Gem — ШІ-асистента</h2>
+        </div>
+      </div>
+
+      <div class="ai-block">
+        <div class="ai-icon">✦</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Що таке Gem?</p>
+          <p>Gem — це персоналізований Gemini-асистент із вашою інструкцією та базою знань. Він доступний учням 24/7 і може виконувати чітко задану педагогічну роль: тренувати розв'язання задач, відповідати на запитання, грати роль вченого — залежно від вашого налаштування.</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Оберіть матеріал і роль бота</p>
+            <p>Оберіть один із матеріалів, отриманих на Етапі 2. Відповідно оберіть роль:</p>
+            <ul>
+              <li>«Задачі зростаючої складності» або «Кейс» → бот <strong>«Тренер з розв'язання задач»</strong></li>
+              <li>«Пояснення від імені вченого» → бот <strong>«Віртуальний Ньютон / Ейлер / Кюрі»</strong></li>
+              <li>«Задача з помилкою» → бот <strong>«Детектив помилок»</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Відкрийте Gem Manager</p>
+            <p>На <a href="https://gemini.google.com" target="_blank" style="color:var(--accent)">gemini.google.com</a> у лівому меню знайдіть <strong>«Gems»</strong> → <strong>«New Gem»</strong>. Дайте креативну назву, наприклад: «Тренер з кінематики» або «Віртуальний Ньютон».</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.3</span>
+          <div class="step-body">
+            <p class="step-title">Напишіть поведінкову інструкцію</p>
+            <p>Використайте шаблон нижче і адаптуйте під свою тему та роль:</p>
+            <div class="gem-template">
+              <p class="gem-label">📋 Шаблон інструкції Gem</p>
+              <p>Ти – <em>[Роль: Тренер з фізики / Віртуальний Ейлер / тощо]</em>.
+Твоя мета – допомогти учням <em>[завдання: розв'язувати задачі / розуміти закони / тощо]</em>.
+Використовуй матеріал: <em>[вставте текст із Етапу 2]</em>.
+Спілкуйся українською мовою.
+Не давай прямих відповідей — задавай навідні питання.</p>
+            </div>
+            <div class="new-block" style="margin-top:.6rem;">
+              <span class="new-badge">ОБОВ'ЯЗКОВО</span>
+              <p>Додайте до інструкції бота це речення: <em>«Якщо учень просить розв'язати задачу — не давай числову відповідь одразу, а веди його по кроках: постановка → формула → підстановка → перевірка одиниць → відповідь».</em> Це ключова відмінність для фізики/математики: готова відповідь ліквідує навчальний ефект.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.4</span>
+          <div class="step-body">
+            <p class="step-title">Збережіть і протестуйте</p>
+            <p>Натисніть «Save» → «Test your Gem». Задайте боту кілька запитань від імені учня. Перевірте, чи він дотримується інструкції: веде по кроках, не дає готову відповідь.</p>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>Результати тестування (скріншоти) — обов'язкова частина звіту і матеріал для Етапу 5.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 4 -->
+    <section class="section" id="section-e4">
+      <div class="section-header">
+        <div class="section-icon green">🔗</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Інтеграція в Google Classroom</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Отримайте посилання на Gem</p>
+            <p>У Gem Manager натисніть на ваш Gem → «Share» → скопіюйте посилання для поширення.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Додайте Gem у Classroom як матеріал</p>
+            <p>Перейдіть у ваш Google Classroom → вкладка «Завдання» → «Створити» → «Матеріал». Заповніть:</p>
+            <ul>
+              <li><strong>Назва:</strong> «Інтерактивний помічник: [Назва бота]»</li>
+              <li><strong>Опис:</strong> Інструкція для учнів — як користуватись ботом і для чого (підготовка до уроку, тренування задач)</li>
+              <li><strong>Вкласти:</strong> значок ланцюжка → вставте посилання на Gem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="tip-block" style="margin-top:.75rem;">
+        <span class="tip-icon">💡</span>
+        <p>В описі матеріалу обов'язково вкажіть учням, що бот веде по кроках розв'язання — і це навмисна педагогічна стратегія, а не «баг». Інакше учні можуть бути збентежені, чому бот «не відповідає напряму».</p>
+      </div>
+    </section>
+
+    <!-- ЕТАП 5 -->
+    <section class="section" id="section-e5">
+      <div class="section-header">
+        <div class="section-icon yellow">🔍</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Валідація та аналіз — Human-in-the-loop</h2>
+        </div>
+      </div>
+
+      <div class="warn-block">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+        <p><strong>Human-in-the-loop</strong> — вчитель завжди перевіряє ШІ. Цей етап не опційний: він формує ключовий професійний рефлекс педагога, який працює з AI-інструментами.</p>
+      </div>
+
+      <div class="divider"></div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Протестуйте Gem від імені учня</p>
+            <p>Задайте боту 3–5 запитань, які може поставити реальний учень вашої теми. Зафіксуйте скріншоти відповідей.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Знайдіть неточність або слабке місце</p>
+            <p>У відповідях Gem або в матеріалах Етапу 2 знайдіть щонайменше одну неточність або момент, який варто покращити. У звіті коротко опишіть, яку правку ви б внесли.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.3</span>
+          <div class="step-body">
+            <p class="step-title">Ручна перевірка обчислень <span class="badge warn">ОБОВ'ЯЗКОВО</span></p>
+            <p>Перевірте <strong>щонайменше одну числову відповідь або формулу</strong>, згенеровану ботом чи в матеріалах Етапу 2 — вручну: розрахунком на папері або через Wolfram Alpha. Зафіксуйте у звіті, чи знайшли розбіжність.</p>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ЧОМУ ЦЕ ВАЖЛИВО</span>
+              <p>Генеративні моделі системно частіше помиляються саме в обчисленнях і формулах, ніж у зв'язному тексті. Для фізики й математики ця перевірка є окремим обов'язковим кроком — не опційною рекомендацією.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншоти промптів і відповідей Gemini (Етап 1 — план уроку)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Три матеріали з Методичної матриці (Етап 2) — збережені тексти або скріншоти</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai">AI</span> Скріншот налаштувань Gem (назва, поведінкова інструкція)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai">AI</span> Скріншоти тестування Gem від імені учня (3–5 запитань)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Активне посилання на Gem у Google Classroom (матеріал в курсі)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Результат ручної перевірки обчислень (Етап 5.3): яку відповідь/формулу перевірено і чи знайдено розбіжність</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Короткий висновок (2–3 речення): яку неточність знайдено в роботі Gem і як ви її виправили</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ (відповідно до Політики курсу)</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Відповіді — частина вашого звіту. Це осмислення досвіду, а не тест.</p>
+      <ol class="reflection-list">
+        <li>Як налаштування ролі («Ти — методист з фізики») вплинуло на якість і стиль відповідей ШІ порівняно із запитом без ролі?</li>
+        <li>У яких ситуаціях варто створювати окремого Gem-асистента, а коли достатньо простого чату з Gemini?</li>
+        <li>Чи були у згенерованому матеріалі помилки («галюцинації») — і скільки часу зайняла їх перевірка?</li>
+        <li>Чи погоджуєтесь ви, що вчитель перетворюється з автора контенту на редактора, який затверджує роботу ШІ? Що при цьому змінюється в ролі педагога?</li>
+        <li>Чи варто повідомляти учням, що при підготовці матеріалів ви використовували ШІ? Як це впливає на довіру?</li>
+        <li>Наскільки надійним є ШІ саме для точних наук — де точність числа чи формули критична? Які типи помилок (обчислювальні, формульні, логічні) ви зустріли?</li>
+        <li>Які ризики несе повна довіра до ШІ-асистента для вчителя-початківця без достатніх предметних знань?</li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li>
+          <span class="res-icon">✦</span>
+          <div>
+            <a href="https://gemini.google.com" target="_blank">Gemini — головна сторінка</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Чат, Gems, Gem Manager — все в одному місці</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">📘</span>
+          <div>
+            <a href="https://support.google.com/gemini/answer/14649458" target="_blank">Довідка Gemini: використання Gems</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Офіційний гайд від Google — як налаштувати і поділитись ботом</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">🧮</span>
+          <div>
+            <a href="https://www.wolframalpha.com" target="_blank">Wolfram Alpha</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Перевірка обчислень, формул і математичних виразів</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">📐</span>
+          <div>
+            <a href="https://www.desmos.com/calculator" target="_blank">Desmos Graphing Calculator</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Перевірка графіків функцій, згенерованих ШІ</div>
+          </div>
+        </li>
+        <li>
+          <span class="res-icon">🎓</span>
+          <div>
+            <a href="https://support.google.com/edu/classroom" target="_blank">Довідка Google Classroom</a>
+            <div style="font-size:.8rem; color:var(--ink-3);">Як додавати матеріали та посилання в курс</div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="warn-block" style="margin-top:1rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💡</span>
+        <p><strong>Ідеї для ролей Gem-ботів:</strong> «Тренер з розв'язання задач» (веде по кроках алгоритму, не дає відповідь), «Віртуальний вчений» (відповідає від імені Ньютона / Ейлера / Кюрі / Піфагора), «Сократівський вчитель» (задає тільки навідні питання), «Детектив помилок» (допомагає знайти неточність у власному розв'язку).</p>
+      </div>
+
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ЕТИКА</span>
+        <p>Завжди нагадуйте учням (і собі), що ШІ може помилятися — особливо в обчисленнях і формулах. Перевірка фактів і розрахунків — обов'язкова частина роботи з будь-яким AI-інструментом.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  function toggleCheck(li) { li.classList.toggle('done'); }
+
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => btn.textContent = 'Копіювати', 2000);
+    });
+  }
+</script>
+</body>
+</html>
