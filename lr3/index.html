@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №3 · Педагогічний контент: Canva + ElevenLabs</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --plus-bg: #F0FDF4; --plus-border: #86EFAC; --plus-text: #166534;
+    --star-bg: #FFF7ED; --star-border: #FED7AA; --star-text: #9A3412;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--accent), #818CF8); width: 0%; transition: width .2s ease; }
+
+  /* HEADER */
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(79,142,247,.25) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  /* LEGEND */
+  .legend-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: .75rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; max-width: 980px; margin: 0 auto; }
+  .legend-item { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--ink-2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-dot.base { background: var(--accent); }
+  .legend-dot.plus { background: var(--success); }
+  .legend-dot.star { background: var(--new); }
+
+  /* LAYOUT */
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 1.5rem 1.5rem 4rem; align-items: start; }
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s, color .15s; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+  .main { min-width: 0; }
+
+  /* SECTION */
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { font-size: .875rem; color: var(--ink-2); padding-left: 1.1em; position: relative; line-height: 1.6; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  /* LEVEL BLOCKS */
+  .level-block { border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .level-block.plus { background: var(--plus-bg); border: 1px solid var(--plus-border); }
+  .level-block.star { background: var(--star-bg); border: 1px solid var(--star-border); }
+  .level-block p { font-size: .84rem; line-height: 1.6; }
+  .level-block.plus p { color: var(--plus-text); }
+  .level-block.star p { color: var(--star-text); }
+  .level-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+  .level-badge.plus { background: var(--success); color: #fff; }
+  .level-badge.star { background: var(--new); color: #fff; }
+
+  /* OTHER BLOCKS */
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* PROMPT */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai { background: var(--accent); color: #fff; }
+  .badge.plus-b { background: var(--success); color: #fff; }
+  .badge.star-b { background: var(--new); color: #fff; }
+
+  /* REFLECTION */
+  .reflection-list { list-style: none; }
+  .reflection-list li { display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .ref-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  /* RESOURCE */
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  /* PRODUCT CARDS */
+  .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .75rem; }
+  .product-card { border: 1px solid var(--border); border-radius: var(--radius); padding: .875rem 1rem; }
+  .product-card h4 { font-size: .8rem; font-weight: 700; color: var(--ink); margin-bottom: .3rem; }
+  .product-card p { font-size: .8rem; color: var(--ink-3); line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .products-grid { grid-template-columns: 1fr; }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">Лабораторна робота № 3</div>
+    <h1>Педагогічний контент:<br>Canva + ElevenLabs</h1>
+    <p class="header-sub">Адаптована версія · Фізика, математика, інформатика · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~4 години (2 аудиторно + 2 самостійно)</span>
+      <span class="meta-chip">🛠 Canva · CodeCogs · ElevenLabs · Gemini</span>
+      <span class="meta-chip">🔗 Наскрізна тема з ЛР №1</span>
+    </div>
+  </div>
+</header>
+
+<!-- LEGEND -->
+<div style="background:var(--card); border-bottom:1px solid var(--border); padding:.75rem 1.5rem;">
+  <div style="max-width:980px; margin:0 auto; display:flex; flex-wrap:wrap; gap:1.25rem; align-items:center;">
+    <span style="font-size:.75rem; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;">Позначки рівнів:</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;"></span> Базовий — обов'язково для всіх</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block;"></span> <strong style="color:var(--success)">+</strong> Розширення</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span style="width:10px;height:10px;border-radius:50%;background:var(--new);display:inline-block;"></span> <strong style="color:var(--new)">★</strong> Творче — дослідницький рівень</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <nav class="sidebar">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · Презентація</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · Інфографіка</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · ElevenLabs</a></li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Озвучення</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Доступність</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Вчитель як дизайнер і автор мультимедійного контенту</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Ця робота — про те, як педагог самостійно створює красивий, методично правильний і доступний навчальний контент. Не шукати «готове в інтернеті», а проектувати власне.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
+        <div class="tip-block" style="margin-top:0;"><span class="tip-icon">🎨</span><p><strong>Візуальний дизайн</strong> — презентація, інфографіка з формулами та QR-кодом</p></div>
+        <div class="tip-block" style="margin-top:0;"><span class="tip-icon">🔊</span><p><strong>Синтез мовлення</strong> — озвучення навчального контенту через ElevenLabs без мікрофона</p></div>
+        <div class="tip-block" style="margin-top:0;"><span class="tip-icon">✦</span><p><strong>AI-генерація зображень</strong> — ілюстрації для інфографіки через Magic Media в Canva</p></div>
+        <div class="tip-block" style="margin-top:0;"><span class="tip-icon">♿</span><p><strong>Доступність</strong> — перевірка контрасту, Alt Text для формул і графіків</p></div>
+      </div>
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">✦</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Наскрізний зв'язок з попередніми роботами</p>
+          <p>Тема курсу з ЛР1, Desmos/GeoGebra з ЛР1 (QR-код в інфографіці), промпт-навички з ЛР2 (Magic Media і ElevenLabs) — все це використовується тут.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Ви готуєтесь до підсумкового заняття з теми вашого курсу. Вам потрібно підготувати три продукти:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:.5rem; margin-bottom:.75rem;">
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--accent-dim); color:var(--accent); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px;">1</span>
+          <span><strong>Презентацію</strong> — для пояснення конкретного закону, теореми або формули з вашої теми</span>
+        </li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--accent-dim); color:var(--accent); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px;">2</span>
+          <span><strong>Інфографіку</strong> — візуальну пам'ятку з ключовими формулами/алгоритмами і QR-кодом на Desmos/GeoGebra</span>
+        </li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--accent-dim); color:var(--accent); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px;">3</span>
+          <span><strong>Аудіозвернення</strong> — коротке озвучене вступне слово до теми (ElevenLabs)</span>
+        </li>
+      </ul>
+      <div class="new-block">
+        <span class="new-badge">ВАЖЛИВО</span>
+        <p>Пояснюваний матеріал має бути <strong>конкретним предметним об'єктом</strong> (закон, теорема, формула) з теми вашого курсу — не абстрактним «складним матеріалом». Це визначить зміст діаграми, формул і сценарію на всіх наступних етапах.</p>
+      </div>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати акаунт у <strong>Canva</strong> (<a href="https://canva.com" target="_blank" style="color:var(--accent)">canva.com</a>) — увійдіть до початку пари</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися в <strong>ElevenLabs</strong> (<a href="https://elevenlabs.io" target="_blank" style="color:var(--accent)">elevenlabs.io</a>) — безкоштовний тариф, 10 000 символів/місяць</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися у <strong>Vidnoz AI</strong> (<a href="https://vidnoz.com" target="_blank" style="color:var(--accent)">vidnoz.com</a>) — знадобиться для ★ завдання; рекомендується реєструватись з <strong>корпоративного університетського акаунту</strong></span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Пригадати <strong>тему курсу з ЛР №1</strong> і конкретний закон/формулу/теорему, яку будете пояснювати</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати <strong>посилання на Desmos або GeoGebra</strong> з ЛР №1 — воно піде в QR-код інфографіки</span></li>
+
+      </ul>
+    </section>
+
+    <!-- ЕТАП 1 -->
+    <section class="section" id="section-e1">
+      <div class="section-header">
+        <div class="section-icon blue">📊</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Навчальна презентація в Canva</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Формат 16:9, 7–10 слайдів: Титульний → Зміст → Теорія → Інтерактив → Висновки. Правило «30 слів»: не більше 30 слів на слайд.</p>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.0</span>
+          <div class="step-body">
+            <p class="step-title">Визначте візуальний стиль — 5 хвилин до початку</p>
+            <p>Перш ніж відкривати шаблон, зафіксуйте три речі, яких будете дотримуватись до кінця роботи:</p>
+            <ul>
+              <li><strong>Палітра</strong> — 3 кольори (темний фон + 1–2 акцентні). Для точних наук темний фон дає кращий контраст для формул і схем</li>
+              <li><strong>Шрифтова пара</strong> — один для заголовків, один для тексту (наприклад, Montserrat + Open Sans)</li>
+              <li><strong>Стиль ілюстрацій</strong> — тільки лінійні іконки, або тільки схеми, або тільки 3D — не мішати</li>
+            </ul>
+            <div class="ai-block" style="margin-top:.5rem;">
+              <div class="ai-icon">🎓</div>
+              <div class="ai-block-inner">
+                <p class="ai-block-title">Canva для освітян — безкоштовний Pro</p>
+                <p>Якщо ще не активували — зараз найкращий момент. Освітній акаунт знімає більшість обмежень: повна бібліотека шаблонів, Magic Media без ліміту, Brand Kit. Активується на <a href="https://www.canva.com/education/" target="_blank" style="color:var(--accent-dark); font-weight:600;">canva.com/education</a> через верифікацію університетської пошти.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Структура через Gemini</p>
+            <p>Відкрийте Gemini. Сформулюйте промпт для структури презентації:</p>
+            <div class="prompt-block" style="margin-top:.5rem;">
+              <p class="prompt-label">Промпт · RTF</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Ти – вчитель <em>[фізики / математики / інформатики]</em>.
+Склади структуру презентації (Вступ, 3–4 тези, висновки)
+на тему <em>«[ваша тема]»</em> для <em>[клас]</em> класу.
+Формат: маркований список, максимум 6 слів на тезу.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Вставка формул на слайд <span class="badge ai">КЛЮЧОВИЙ КРОК</span></p>
+            <p>Canva не має LaTeX-редактора — це реальна проблема для точних наук. Вирішення:</p>
+            <ul>
+              <li>Відкрийте <a href="https://editor.codecogs.com" target="_blank" style="color:var(--accent)">CodeCogs Equation Editor</a> → наберіть формулу в LaTeX → завантажте як PNG</li>
+              <li>Або: наберіть формулу у Word / Google Docs → скріншот фрагменту</li>
+              <li>У Canva: вкладка «Uploads» → завантажте PNG → вставте на слайд</li>
+              <li>Перевірте контраст: якщо формула темна, а фон темний — додайте білу підкладку</li>
+            </ul>
+            <div class="new-block">
+              <span class="new-badge">ПРЕДМЕТНА СПЕЦИФІКА</span>
+              <p>Не «будь-яка» формула — конкретна, з вашої теми. Перевірте правильність запису вручну перед вставкою: CodeCogs рендерить те, що ви написали, і може рендерити неправильно, якщо в LaTeX-коді є помилка.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.3</span>
+          <div class="step-body">
+            <p class="step-title">Діаграма з предметним змістом</p>
+            <p>Elements → Charts → оберіть тип. Дані мають відображати реальний предметний зміст:</p>
+            <ul>
+              <li><strong>Фізика:</strong> графік залежності (S від t для кінематики) або точки вимірювань</li>
+              <li><strong>Математика:</strong> таблиця значень функції або статистичні дані для задачі</li>
+              <li><strong>Інформатика:</strong> порівняльна діаграма (наприклад, складність алгоритмів)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.4</span>
+          <div class="step-body">
+            <p class="step-title">Обов'язкові елементи</p>
+            <ul>
+              <li><strong>Мультимедіа:</strong> вставте YouTube-відео або аудіофайл на один зі слайдів</li>
+              <li><strong>Анімація:</strong> налаштуйте послідовну появу пунктів списку на одному слайді</li>
+              <li><strong>Інтерактив:</strong> створіть кнопку або гіперпосилання на Desmos/GeoGebra</li>
+            </ul>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Поділіться презентацією → «Загальнодоступне посилання» → прикріпіть до завдання у вашому Google Classroom з ЛР №1.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 2 -->
+    <section class="section" id="section-e2">
+      <div class="section-header">
+        <div class="section-icon green">📋</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Інфографіка — опорний конспект</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Формат «Infographic» або «Square 1080×1080». Це не декоративний плакат, а <strong>функціональний опорний конспект</strong> — учень має з нього вчитись.</p>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">2.1</span>
+          <div class="step-body">
+            <p class="step-title">Зміст: 5–7 ключових формул/тез</p>
+            <p>Скоротіть текст через Gemini: «Склади 5 ключових тез/формул з теми [ваша тема] для опорного конспекту учня [клас] класу. Максимум 10 слів на тезу». Перевірте кожну формулу вручну.</p>
+            <ul>
+              <li>Замість суцільного тексту — піктограми, стрілки, блок-схеми</li>
+              <li>Кольори і шрифти відповідають вашому визначеному стилю (крок 1.0)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.2</span>
+          <div class="step-body">
+            <p class="step-title">QR-код на Desmos/GeoGebra</p>
+            <p>Apps → QR Code → вставте посилання на ваш Desmos або GeoGebra з ЛР №1. Розмістіть QR-код в кутку інфографіки з підписом «Досліджуй інтерактивно».</p>
+            <div class="new-block">
+              <span class="new-badge">НАСКРІЗНИЙ ЗВ'ЯЗОК</span>
+              <p>Учень зі статичної інфографіки одразу потрапляє в інтерактивний ресурс для самостійного дослідження. Це не «ще одна функція» — це педагогічна архітектура: статика → динаміка.</p>
+            </div>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Завантажте інфографіку як PNG і розмістіть у Google Classroom як «Матеріал» з підписом для учнів: навіщо вони на неї дивляться і що мають з нею зробити.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.3</span>
+          <div class="step-body">
+            <p class="step-title">Ілюстрація для інфографіки через Magic Media <span class="badge plus-b">+</span></p>
+            <p>Замість пошуку стокових зображень — згенеруйте тематичну ілюстрацію прямо в Canva. Apps (зліва) → Magic Media → напишіть промпт англійською:</p>
+            <div class="prompt-block" style="margin-top:.5rem;">
+              <p class="prompt-label">Промпти за профілем</p>
+              <p class="prompt-text"><em>Фізика:</em> «Abstract illustration on the topic [явище з теми],
+3D render style, no text, dark background»
+
+<em>Математика:</em> «Geometric composition with abstract shapes
+on the topic [тема], minimalism, no text»
+
+<em>Інформатика:</em> «Abstract digital technology illustration,
+[тема], circuit style, no text, dark background»</p>
+            </div>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Завжди додавайте <code>no text</code> у промпт — інакше AI вписує випадкові літери. Для освітнього акаунту Magic Media доступна без щоденного ліміту.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 3 -->
+    <section class="section" id="section-e3">
+      <div class="section-header">
+        <div class="section-icon yellow">🔊</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Синтез мовлення — ElevenLabs</h2>
+        </div>
+      </div>
+      <div class="ai-block" style="margin-bottom:.75rem;">
+        <div class="ai-icon">🔊</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Що і навіщо</p>
+          <p>ElevenLabs дозволяє озвучити навчальний текст без мікрофона. Ліміт безкоштовного тарифу — 10 000 символів/місяць, цього вистачає на 5–7 хвилин аудіо. Модель <code>Eleven Multilingual v2</code> підтримує якісну українську мову.</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Підготуйте сценарій через Gemini</p>
+            <p>Напишіть короткий сценарій (до 60 слів) — вступне слово до теми уроку:</p>
+            <div class="prompt-block" style="margin-top:.5rem;">
+              <p class="prompt-label">Промпт</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Напиши вступне слово до уроку (до 60 слів)
+від імені вчителя <em>[фізики / математики / інформатики]</em>
+на тему <em>«[ваша тема]»</em> для <em>[клас]</em> класу.
+Стиль: мотивуючий, лаконічний, без складних термінів.</p>
+            </div>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+              <p><strong>Формули в тексті — записуйте словами.</strong> «F=ma» синтезатор може прочитати як «F equals ma» або взагалі пропустити. Пишіть: «сила дорівнює масі, помноженій на прискорення». Символьний запис формули показується візуально — на слайді або в описі.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Озвучення в ElevenLabs</p>
+            <ul>
+              <li>Перейдіть у розділ <strong>Speech Synthesis</strong></li>
+              <li>Model: оберіть <strong>Eleven Multilingual v2</strong></li>
+              <li>Оберіть голос, що відповідає вашому персонажу або стилю</li>
+              <li>Вставте текст → Generate → прослухайте</li>
+              <li>Перевірте: чи правильно вимовлено всі терміни і числа</li>
+              <li>Завантажте аудіофайл (кнопка завантаження внизу праворуч)</li>
+            </ul>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>Трикрапка «…» робить паузу. Знак оклику «!» додає інтонацію. Використовуйте для природнішого звучання.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.3</span>
+          <div class="step-body">
+            <p class="step-title">Розміщення в Classroom</p>
+            <p>Завантажте MP3 на Google Drive → у Classroom додайте як «Матеріал» з описом: навіщо учень це слухає і що робить після прослуховування.</p>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <div style="flex:1;">
+                <p style="font-weight:600; color:var(--star-text); font-size:.84rem; margin-bottom:.4rem;">Варіант «Історична постать» + відео Vidnoz</p>
+                <p style="margin-bottom:.5rem;">Замість звернення від імені вчителя — «оживіть» вченого-фізика або математика, пов'язаного з вашою темою (Ньютон, Ейлер, Кюрі, Піфагор тощо). Вчений розповідає про своє відкриття від першої особи.</p>
+                <p style="font-weight:600; color:var(--star-text); font-size:.82rem; margin:.5rem 0 .3rem;">Крок 1 · Сценарій через Gemini</p>
+                <p>Промпт: <em>«Напиши сценарій відеозвернення (до 60 слів) від імені [ім'я вченого] до учнів [клас] класу на тему "[ваша тема]". Поясни суть відкриття простими словами, без складних символів. Стиль: надихаючий, лаконічний.»</em> Формулу в сценарії записуйте словами — синтезатор може спотворити символи.</p>
+                <p style="font-weight:600; color:var(--star-text); font-size:.82rem; margin:.5rem 0 .3rem;">Крок 2 · Портрет через Canva Magic Media</p>
+                <p>Canva → Apps → Magic Media → промпт структурою: <code>Medium shot portrait of [ім'я вченого], [епоха], front view, looking directly into the camera, closed mouth, neutral expression, plain background</code>. Завантажте зображення (JPG/PNG).</p>
+                <p style="font-weight:600; color:var(--star-text); font-size:.82rem; margin:.5rem 0 .3rem;">Крок 3 · Анімація в Vidnoz AI</p>
+                <p>Перейдіть на <a href="https://vidnoz.com" target="_blank" style="color:var(--star-text); font-weight:600;">vidnoz.com</a> → завантажте портрет (Avatar) і аудіофайл з ElevenLabs (Audio) → натисніть Generate Video → завантажте MP4.</p>
+                <p style="font-weight:600; color:var(--star-text); font-size:.82rem; margin:.5rem 0 .3rem;">Крок 4 · Публікація</p>
+                <p>Завантажте відео на Google Drive → у Classroom додайте як «Матеріал» з назвою «[Ім'я вченого] розповідає про [тему]» і описом для учнів.</p>
+                <div style="background:rgba(154,52,18,.08); border-radius:6px; padding:.5rem .75rem; margin-top:.5rem;">
+                  <p style="font-size:.81rem; color:var(--star-text);">⚠ У звіті обов'язково вкажіть: як ви перевіряли достовірність фактів у сценарії — і де проходить межа між спрощенням заради зрозумілості й науковою неточністю.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 6 -->
+    <section class="section" id="section-e4">
+      <div class="section-header">
+        <div class="section-icon yellow">🎙️</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Озвучена презентація Canva</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Озвучена презентація — це не просто набір слайдів з аудіо, а самостійний навчальний модуль, який учень може переглядати у власному темпі без участі вчителя. Особливо цінно для дистанційного та змішаного навчання: учень може повернутися до складного місця, поставити на паузу, переглянути формулу ще раз.</p>
+
+      <div class="ai-block" style="margin-bottom:.75rem;">
+        <div class="ai-icon">💡</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Два підходи — оберіть один</p>
+          <p><strong>Варіант А (простіший):</strong> записати голосовий супровід прямо в Canva через вбудований мікрофон — без додаткових інструментів.<br>
+          <strong>Варіант Б (складніший, але якісніший):</strong> підготувати аудіо в ElevenLabs (з Етапу 5) і накласти на слайди в Canva. Дає змогу редагувати текст без перезапису.</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Підготуйте нотатки доповідача</p>
+            <p>Відкрийте вашу презентацію → внизу кожного слайду є поле «Нотатки доповідача» (Speaker Notes). Для кожного слайду напишіть коротке пояснення (2–4 речення) — це і буде сценарій озвучення. Формули записуйте словами.</p>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>Використайте Gemini: <em>«Розшир нотатки доповідача до цього слайду в 2–3 реченнях, пояснивши [ключовий термін / формулу] простими словами для учнів [клас] класу»</em>. Перевірте точність формулювань.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Варіант А · Запис через мікрофон у Canva</p>
+            <p>У режимі презентації (кнопка «Present» → «Record») Canva дозволяє записати голос і вебкамеру для кожного слайду окремо. Після запису — автоматична синхронізація аудіо зі слайдом.</p>
+            <ul>
+              <li>Present → Record → оберіть «Microphone only» або «Microphone + Camera»</li>
+              <li>Записуйте по одному слайду — так легше переписати окремо, якщо помилилися</li>
+              <li>Після запису всіх слайдів → «Done» → перегляньте результат</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.3</span>
+          <div class="step-body">
+            <p class="step-title">Варіант Б · Накладення аудіо з ElevenLabs</p>
+            <p>Для більш ретельно підготовленого озвучення — використайте аудіо, згенероване в Етапі 5, або запишіть повний сценарій і озвучте в ElevenLabs. Потім на кожному слайді: елемент → Audio → Upload → ваш MP3-файл. Відрегулюйте тривалість показу слайду відповідно до довжини аудіо.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Якщо у вас кілька слайдів — розбийте сценарій на окремі файли (по одному на слайд) і завантажте кожен окремо. Це дає точнішу синхронізацію і дозволяє переозвучити лише один слайд без перезапису всього.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.4</span>
+          <div class="step-body">
+            <p class="step-title">Публікація та розміщення в Classroom</p>
+            <p>Share → «Present and record» → скопіюйте посилання на записану версію. Або завантажте як MP4 (Download → MP4) і розмістіть на Google Drive. У Classroom додайте як «Матеріал» з описом: навіщо учень це переглядає і що має зробити після.</p>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💬</span>
+              <p><strong>Педагогічна рамка важлива.</strong> Не просто «перегляньте відео», а конкретне завдання: <em>«Переглянь озвучену презентацію. На слайді 3 є задача — спробуй розв'язати її до того, як я поясню. Запиши свою відповідь»</em>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 7 -->
+    <section class="section" id="section-e5">
+      <div class="section-header">
+        <div class="section-icon green">♿</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Доступність та перевірка</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Перевірка доступності в Canva</p>
+            <p>Поверніться до презентації → File → View settings → <strong>Check accessibility</strong>. Виправте 1–2 помилки, які знайде система (зазвичай — низька контрастність тексту або відсутній Alt Text).</p>
+            <div class="new-block">
+              <span class="new-badge">ПРЕДМЕТНА СПЕЦИФІКА</span>
+              <p>Перевірте кольори у вашій діаграмі: чи розрізняються лінії/стовпці <strong>не лише за кольором</strong>, а й за формою, штрихуванням або підписом? Пара «червоний/зелений» нерозрізнима для людей з дальтонізмом — а графіки у точних науках є ключовим носієм інформації.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Alt Text для формул і графіків</p>
+            <p>Права кнопка миші на зображенні → Alternative text. Опишіть зміст, а не факт наявності:</p>
+            <ul>
+              <li>❌ Погано: «Графік 1» або «Формула»</li>
+              <li>✅ Добре: «Графік залежності шляху від часу при рівноприскореному русі — парабола, що показує квадратичну залежність S від t»</li>
+              <li>✅ Для формули: «Другий закон Ньютона: F дорівнює m помножити на a, де F — сила в Ньютонах, m — маса в кілограмах, a — прискорення в м/с²»</li>
+            </ul>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Перевірте контрастність тексту на своїх слайдах через <a href="https://webaim.org/resources/contrastchecker" target="_blank" style="color:var(--accent-dark)">WebAIM Contrast Checker</a>. Мінімальне співвідношення 4.5:1 для тексту і 3:1 для великих заголовків.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.3</span>
+          <div class="step-body">
+            <p class="step-title">Порівняння з AI-інструментом на вибір <span class="badge plus-b">+ розширення</span></p>
+            <p>Оберіть <strong>один</strong> AI-інструмент і спробуйте згенерувати структуру або контент для тієї самої теми. Порівняйте результат з вашою роботою в Canva.</p>
+
+            <div class="ai-block" style="margin-top:.6rem;">
+              <div class="ai-icon">✦</div>
+              <div class="ai-block-inner">
+                <p class="ai-block-title">Рекомендований варіант — Gemini for Education</p>
+                <p>Ви вже знайомі з ним з ЛР №1. Спробуйте функції з блоку «Почніть із запиту»: <strong>«Створити презентацію»</strong> або <strong>«Створити інфографіку»</strong> на вашу тему. Це найприродніше порівняння — той самий AI, але в режимі «одна кнопка» vs ваша ручна робота в Canva.</p>
+              </div>
+            </div>
+
+            <p style="font-size:.84rem; color:var(--ink-3); margin:.6rem 0 .3rem;">Або оберіть інший інструмент:</p>
+            <ul>
+              <li><strong>Gemini (звичайний чат)</strong> — згенерує текст і структуру, але не візуал; перенесіть у Canva і порівняйте</li>
+              <li><strong>Claude</strong> — якісна структура і текст, детальні пояснення формул словами</li>
+              <li><strong>Gamma.app</strong> — готовий слайд-дек, але обмежений контроль над дизайном і майже завжди проблемний з формулами</li>
+            </ul>
+
+            <p style="font-size:.84rem; color:var(--ink-2); margin-top:.6rem;">У висновку зафіксуйте три речі:</p>
+            <ul>
+              <li>Як AI впорався з <strong>формулами</strong> — порівняно з вашим методом через CodeCogs?</li>
+              <li>Де ви витратили <strong>менше часу</strong> — і чи варте це жертви контролем?</li>
+              <li>Який сценарій виправдовує AI-генерацію, а який — ні?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на презентацію Canva (режим перегляду)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Файл інфографіки (PNG або PDF) з видимим QR-кодом</span></li>
+
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Аудіофайл або посилання на MP3 з ElevenLabs у Classroom</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на озвучену презентацію (записана версія Canva або MP4) у Google Classroom — з описом завдання для учня</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот перевірки доступності (Accessibility Check) з виправленою помилкою</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Короткий висновок (2–3 речення): як ви вирішили проблему вставки формул у Canva</span></li>
+
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Короткий висновок (3–4 речення): який AI-інструмент обрали для порівняння, як він впорався з формулами і коли б ви його використали замість Canva</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Відео з Vidnoz (скріншот налаштувань + посилання на файл у Classroom) + короткий коментар про перевірку достовірності сценарію</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <ol class="reflection-list">
+        <li><span class="ref-num">1</span><span>Як попереднє визначення кольорів, шрифтів і стилю ілюстрацій (крок 1.0) вплинуло на швидкість роботи та візуальну цілісність вашої презентації?</span></li>
+        <li><span class="ref-num">2</span><span>Чому вбудований інструмент Charts у Canva важливий саме для фізики/математики? Які обмеження ви відчули при вставці формули?</span></li>
+        <li><span class="ref-num">3</span><span>Чи складно було дотримуватися правила «30 слів на слайд»? Як це обмеження впливає на якість пояснення матеріалу учням?</span></li>
+        <li><span class="ref-num">4</span><span>Наскільки надійним виявився ElevenLabs при озвученні наукових термінів і чисел? Як ви вирішили проблему формул у звуковому ряді?</span></li>
+        <li><span class="ref-num">5</span><span>У яких педагогічних ситуаціях використання AI-аватара або озвученого тексту є більш ефективним, ніж звичайне відео з живим вчителем?</span></li>
+        <li><span class="ref-num">6</span><span>Яка різниця між озвученою презентацією і звичайним відеоуроком з точки зору учня — і з точки зору вчителя, який її готує? У яких умовах (дистанційне, змішане, очне) озвучена презентація дає найбільшу педагогічну цінність?</span></li>
+        <li><span class="ref-num">6</span><span>Які неочевидні помилки виявила перевірка доступності? Чому важливо додавати змістовний Alt Text до формул і графіків — а не просто «Графік 1»?</span></li>
+        <li><span class="ref-num">7</span><span>Який AI-інструмент ви обрали для порівняння і чому саме його? Чи змінило це порівняння вашу думку про те, коли варто використовувати AI-генерацію, а коли — ручну роботу в Canva?</span></li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li><span class="res-icon">🎨</span><div>
+          <a href="https://canva.com" target="_blank">Canva</a>
+          <div style="font-size:.8rem; color:var(--ink-3);">Презентації, інфографіки, AI-ілюстрації через Magic Media — основний інструмент роботи</div>
+          <div style="font-size:.8rem; margin-top:.25rem;">
+            <a href="https://www.canva.com/education/" target="_blank" style="color:var(--accent); font-weight:600;">Canva для освітян →</a>
+            <span style="color:var(--ink-3);"> безкоштовний Pro-акаунт для вчителів і студентів педагогічних спеціальностей — розширені шаблони, знятий ліміт на завантаження, Brand Kit</span>
+          </div>
+        </div></li>
+        <li><span class="res-icon">🔢</span><div><a href="https://editor.codecogs.com" target="_blank">CodeCogs Equation Editor</a><div style="font-size:.8rem; color:var(--ink-3);">Безкоштовний онлайн LaTeX → PNG для вставки формул у Canva</div></div></li>
+        <li><span class="res-icon">🔊</span><div><a href="https://elevenlabs.io" target="_blank">ElevenLabs</a><div style="font-size:.8rem; color:var(--ink-3);">Синтез мовлення — Eleven Multilingual v2 для якісної української</div></div></li>
+        <li><span class="res-icon">🎭</span><div><a href="https://vidnoz.com" target="_blank">Vidnoz AI</a><div style="font-size:.8rem; color:var(--ink-3);">Анімація портрета під аудіофайл — використовується у ★ завданні «Історична постать»</div></div></li>
+        <li><span class="res-icon">⚡</span><div>
+          <span style="font-weight:500; color:var(--ink);">AI-інструменти для порівняльного завдання (+ розширення)</span>
+          <div style="font-size:.8rem; color:var(--ink-3); margin-top:.2rem;">
+            <a href="https://workspace.google.com/products/gemini" target="_blank" style="color:var(--accent);">Gemini for Education</a> · 
+            <a href="https://gemini.google.com" target="_blank" style="color:var(--accent);">Gemini (чат)</a> · 
+            <a href="https://claude.ai" target="_blank" style="color:var(--accent);">Claude</a> · 
+            <a href="https://gamma.app" target="_blank" style="color:var(--accent);">Gamma.app</a>
+          </div>
+        </div></li>
+        <li><span class="res-icon">♿</span><div><a href="https://webaim.org/resources/contrastchecker" target="_blank">WebAIM Contrast Checker</a><div style="font-size:.8rem; color:var(--ink-3);">Перевірка контрасту тексту і фону на слайдах</div></div></li>
+        <li><span class="res-icon">📐</span><div><a href="https://www.desmos.com/calculator" target="_blank">Desmos</a> / <a href="https://www.geogebra.org" target="_blank">GeoGebra</a><div style="font-size:.8rem; color:var(--ink-3);">Джерело QR-коду в інфографіці — посилання з ЛР №1</div></div></li>
+      </ul>
+
+      <div class="warn-block" style="margin-top:1rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💡</span>
+        <p><strong>Ліміти ElevenLabs:</strong> 10 000 символів/місяць на безкоштовному тарифі — це приблизно 5–7 хвилин аудіо. Для сценарію в 60 слів вистачає багато разів. Якщо ліміт вичерпано — зареєструйтесь з іншого email або скоротіть текст.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' }).observe ? sections.forEach(s => new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { const id = entry.target.id; navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id)); }});
+  }, { rootMargin: '-30% 0px -60% 0px' }).observe(s)) : null;
+  function toggleCheck(li) { li.classList.toggle('done'); }
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Скопійовано ✓'; setTimeout(() => btn.textContent = 'Копіювати', 2000); });
+  }
+</script>
+</body>
+</html>
