@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №4 · Інтерактивні візуальні простори: Padlet + Genially</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --plus-bg: #F0FDF4; --plus-border: #86EFAC; --plus-text: #166534;
+    --star-bg: #FFF7ED; --star-border: #FED7AA; --star-text: #9A3412;
+    --padlet: #FF2B55; --padlet-bg: #FFF0F3;
+    --genially: #00BF6F; --genially-bg: #F0FDF9;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--padlet), var(--genially)); width: 0%; transition: width .2s ease; }
+
+  /* HEADER */
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(0,191,111,.2) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  /* LEGEND */
+  .legend-bar { background: var(--card); border-bottom: 1px solid var(--border); }
+  .legend-inner { max-width: 980px; margin: 0 auto; padding: .75rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--ink-2); }
+  .ld { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* PART TABS */
+  .part-tabs { max-width: 980px; margin: 1.5rem auto 0; padding: 0 1.5rem; display: flex; gap: .5rem; }
+  .part-tab { padding: .5rem 1.25rem; border-radius: 8px 8px 0 0; font-size: .85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); border-bottom: none; background: var(--surface); color: var(--ink-3); transition: all .15s; }
+  .part-tab.padlet.active { background: var(--padlet-bg); color: var(--padlet); border-color: #FFCDD5; }
+  .part-tab.genially.active { background: var(--genially-bg); color: var(--genially); border-color: #A7F3D0; }
+
+  /* LAYOUT */
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 1.5rem 1.5rem 4rem; align-items: start; }
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-section { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: .5rem .5rem .2rem; opacity: .6; }
+  .nav-section.padlet { color: var(--padlet); opacity: 1; }
+  .nav-section.genially { color: var(--genially); opacity: 1; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+  .main { min-width: 0; }
+
+  /* PART DIVIDER */
+  .part-header { border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1rem 1.5rem .75rem; margin-bottom: 0; display: flex; align-items: center; gap: .75rem; }
+  .part-header.padlet { background: var(--padlet-bg); border: 1px solid #FFCDD5; border-bottom: none; }
+  .part-header.genially { background: var(--genially-bg); border: 1px solid #A7F3D0; border-bottom: none; margin-top: 2rem; }
+  .part-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .part-dot.padlet { background: var(--padlet); }
+  .part-dot.genially { background: var(--genially); }
+  .part-title { font-size: .875rem; font-weight: 700; }
+  .part-title.padlet { color: var(--padlet); }
+  .part-title.genially { color: var(--genially); }
+  .part-sub { font-size: .78rem; color: var(--ink-3); }
+
+  /* SECTION */
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section.padlet-section { border-top: 3px solid var(--padlet); }
+  .section.genially-section { border-top: 3px solid var(--genially); }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-icon.padlet { background: var(--padlet-bg); }
+  .section-icon.genially { background: var(--genially-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p, .step-body li { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { padding-left: 1.1em; position: relative; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  /* BLOCKS */
+  .level-block { border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .level-block.plus { background: var(--plus-bg); border: 1px solid var(--plus-border); }
+  .level-block.star { background: var(--star-bg); border: 1px solid var(--star-border); }
+  .level-block.plus p { font-size: .84rem; color: var(--plus-text); line-height: 1.6; }
+  .level-block.star p { font-size: .84rem; color: var(--star-text); line-height: 1.6; }
+  .level-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+  .level-badge.plus { background: var(--success); color: #fff; }
+  .level-badge.star { background: var(--new); color: #fff; }
+
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* PROMPT */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* INTERACTION TYPES */
+  .interaction-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; margin-top: .6rem; }
+  .interaction-card { border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem; }
+  .interaction-card h4 { font-size: .78rem; font-weight: 700; color: var(--ink); margin-bottom: .25rem; }
+  .interaction-card p { font-size: .75rem; color: var(--ink-3); line-height: 1.5; }
+  .interaction-card.tooltip { border-color: #FCD34D; background: #FFFBEB; }
+  .interaction-card.window { border-color: #A7F3D0; background: #ECFDF5; }
+  .interaction-card.link { border-color: #C7D7FC; background: #EBF2FF; }
+  .interaction-card.tooltip h4 { color: #92400E; }
+  .interaction-card.window h4 { color: #065F46; }
+  .interaction-card.link h4 { color: #1A5FCC; }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai { background: var(--accent); color: #fff; }
+  .badge.plus-b { background: var(--success); color: #fff; }
+  .badge.star-b { background: var(--new); color: #fff; }
+  .badge.key { background: var(--warn); color: #fff; }
+
+  .reflection-list { list-style: none; }
+  .reflection-list li { display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .ref-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .interaction-grid { grid-template-columns: 1fr; }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">Лабораторна робота № 4</div>
+    <h1>Інтерактивні візуальні простори:<br>Padlet + Genially</h1>
+    <p class="header-sub">Адаптована версія · Фізика, математика, інформатика · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~4 години (2 аудиторно + 2 самостійно)</span>
+      <span class="meta-chip">🛠 Padlet · Genially · Gemini</span>
+      <span class="meta-chip">🔗 Наскрізна тема з ЛР №1</span>
+    </div>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span style="font-size:.75rem; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;">Позначки:</span>
+    <span class="legend-item"><span class="ld" style="background:var(--accent);"></span> Базовий — обов'язково</span>
+    <span class="legend-item"><span class="ld" style="background:var(--success);"></span> <strong style="color:var(--success)">+</strong> Розширення</span>
+    <span class="legend-item"><span class="ld" style="background:var(--new);"></span> <strong style="color:var(--new)">★</strong> Творче</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li style="padding:.4rem 0 .2rem .5rem; font-size:10px; font-weight:700; color:var(--padlet); letter-spacing:.05em; text-transform:uppercase;">Частина А · Padlet</li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · Дошка</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · Фасилітація</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · Classroom</a></li>
+      <li style="padding:.4rem 0 .2rem .5rem; font-size:10px; font-weight:700; color:var(--genially); letter-spacing:.05em; text-transform:uppercase;">Частина Б · Genially</li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Планування</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Плакат</a></li>
+      <li><a class="nav-link" href="#section-e6" onclick="setActive(this)"><span class="nav-num">8</span> Етап 6 · Embed</a></li>
+      <li><a class="nav-link" href="#section-e7" onclick="setActive(this)"><span class="nav-num">9</span> Етап 7 · Quiz</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Учень як активний дослідник, а не пасивний читач</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Якщо ЛР3 — про вчителя як дизайнера контенту, то ця робота — про проектування середовища, де учень сам діє: пропонує ідеї, голосує, досліджує схему, клікає на елементи. Два інструменти — два різних педагогічних режими.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
+        <div style="background:var(--padlet-bg); border:1px solid #FFCDD5; border-radius:var(--radius); padding:.875rem 1rem;">
+          <p style="font-size:.78rem; font-weight:700; color:var(--padlet); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem;">Padlet</p>
+          <p style="font-size:.84rem; color:var(--ink-2);">Синхронна та асинхронна співпраця — учні разом збирають ідеї, голосують за розв'язки, бачать внесок одне одного</p>
+        </div>
+        <div style="background:var(--genially-bg); border:1px solid #A7F3D0; border-radius:var(--radius); padding:.875rem 1rem;">
+          <p style="font-size:.78rem; font-weight:700; color:var(--genially); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem;">Genially</p>
+          <p style="font-size:.84rem; color:var(--ink-2);">Асинхронне самостійне дослідження — учень клікає на елементи схеми, читає пояснення, відкриває Desmos, проходить Quiz</p>
+        </div>
+      </div>
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">🔗</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Наскрізний зв'язок із попередніми роботами</p>
+          <p>Тема з ЛР1, зображення-основа для плаката з ЛР3 (Canva), Desmos/GeoGebra з ЛР1 — все це інтегрується сюди. Padlet-дошка додається до Google Classroom з ЛР1, Genially-плакат стає новим матеріалом у тому ж курсі.</p>
+        </div>
+      </div>
+      <div class="warn-block" style="margin-top:.75rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+        <p><strong>Ліміт Padlet:</strong> безкоштовний акаунт дозволяє лише <strong>3 дошки</strong>. Якщо ліміт вичерпано — видаліть або заархівуйте стару дошку перед початком роботи.</p>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">У вашому дистанційному курсі настав час для активної роботи учнів. Вам потрібно вирішити два педагогічних завдання:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:.5rem;">
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--padlet-bg); color:var(--padlet); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px; border:1px solid #FFCDD5;">Padlet</span>
+          <span><strong>Зібрати ідеї колективно</strong> — провести мозковий штурм або структурувати типи задач за темою, де кожен учень бачить внесок інших і може голосувати за найкращий розв'язок.</span>
+        </li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);">
+          <span style="background:var(--genially-bg); color:var(--genially); font-weight:700; font-size:.75rem; padding:2px 8px; border-radius:4px; flex-shrink:0; margin-top:2px; border:1px solid #A7F3D0;">Genially</span>
+          <span><strong>Створити дослідницький простір</strong> — замість параграфа в підручнику: інтерактивна схема або графік, яку учень досліджує сам, клікаючи на елементи та відкриваючи пояснення.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися на <strong>Padlet</strong> (<a href="https://padlet.com" target="_blank" style="color:var(--accent)">padlet.com</a>) — через Google-акаунт; переконатися, що інтерфейс перекладено українською (Налаштування → Мова)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися на <strong>Genially</strong> (<a href="https://genially.com" target="_blank" style="color:var(--accent)">genially.com</a>) — через Google-акаунт</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати <strong>посилання на Desmos або GeoGebra</strong> з ЛР №1 — воно буде вбудоване в Genially-плакат</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати <strong>посилання на YouTube-відео</strong> за вашою темою — для вбудовування у Genially</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підготувати <strong>зображення-основу</strong> для плаката — схема, графік або креслення (можна використати дизайн з ЛР №3 або взяти з відкритих джерел)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до Google Classroom з ЛР №1</span></li>
+      </ul>
+    </section>
+
+    <!-- ── ЧАСТИНА А · PADLET ─────────────────────────────── -->
+    <div style="background:var(--padlet-bg); border:1px solid #FFCDD5; border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:.875rem 1.5rem; margin-bottom:0; display:flex; align-items:center; gap:.75rem;">
+      <div style="width:10px; height:10px; border-radius:50%; background:var(--padlet); flex-shrink:0;"></div>
+      <div>
+        <p style="font-size:.85rem; font-weight:700; color:var(--padlet);">Частина А · Padlet</p>
+        <p style="font-size:.75rem; color:var(--ink-3);">Фасилітація та збір ідей — синхронна і асинхронна співпраця</p>
+      </div>
+    </div>
+
+    <!-- ЕТАП 1 -->
+
+    <section class="section" id="section-e1" style="border-top: 3px solid var(--padlet); border-radius: 0 0 0 0; margin-bottom:0;">
+      <div class="section-header">
+        <div class="section-icon padlet">🗂️</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Створення дошки та наповнення контентом</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Оберіть формат дошки</p>
+            <p>Padlet → <strong>+ Зробити → Почати з нуля</strong>. Оберіть формат, що відповідає вашій педагогічній меті:</p>
+            <ul>
+              <li><strong>Стовпці</strong> — для структурування розв'язань задач по кроках: колонки «Дано», «Формула», «Хід розв'язання»</li>
+              <li><strong>Шкала</strong> — для розміщення матеріалу на часовій шкалі: розвиток закону, хронологія відкриттів</li>
+              <li><strong>Стіна</strong> — для вільного мозкового штурму: учні додають ідеї без жорсткої структури</li>
+              <li><strong>Стіл</strong> — для порівняльних таблиць: характеристики різних видів руху або функцій</li>
+            </ul>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Дайте дошці назву за темою вашого курсу. Оберіть тематичний фон (іконка пензлика → Фон).</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Наповніть дошку контентом різних типів <span class="badge key">ОСНОВНЕ ЗАВДАННЯ</span></p>
+            <p>Натисніть <strong>«+»</strong> або двічі клікніть на дошці, щоб створити допис. Форма допису містить кілька іконок вкладень — спробуйте <strong>кожен тип</strong>:</p>
+            <ul>
+              <li><strong>↑ Завантаження</strong> — PDF-конспект або зображення схеми/графіка з вашої теми</li>
+              <li><strong>📷 Камера / Фото</strong> — фото рукописного розв'язку задачі або фізичної установки</li>
+              <li><strong>✦ AI (зірочка)</strong> — натисніть цю іконку всередині допису, введіть запит і отримайте чернетку тексту: умову задачі, визначення поняття, короткий факт про вченого. Перевірте формули вручну перед публікацією</li>
+              <li><strong>🔗 Посилання</strong> — вставте URL вашого Desmos або GeoGebra з ЛР №1; Padlet автоматично підтягне прев'ю</li>
+              <li><strong>Усі інструменти</strong> — тут знайдіть: відео з YouTube (вставте посилання), аудіофайл (наприклад, озвучений фрагмент з ЛР №3), посилання на Google Slides</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">AI У ДОПИСІ</span>
+              <p>Іконка ✦ (AI) у формі допису — це допомога з текстом <strong>одного допису</strong>, а не генерація всієї дошки. Використовуйте для швидкого чернетування умов задач, визначень термінів, формулювань запитань. Обов'язково перевіряйте формули і числа вручну перед публікацією.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.3</span>
+          <div class="step-body">
+            <p class="step-title">Створіть щонайменше 4 дописи різних типів</p>
+            <p>Кожен допис — окремий тип контенту. Мінімальний набір для звіту:</p>
+            <ul>
+              <li>Текстовий допис із умовою задачі (скористайтесь AI ✦ для чернетки)</li>
+              <li>Допис із завантаженим зображенням або PDF (схема, графік, конспект)</li>
+              <li>Допис із посиланням на Desmos / GeoGebra (з прев'ю)</li>
+              <li>Допис із YouTube-відео або аудіофайлом</li>
+            </ul>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Спробуйте формат <strong>«Запитання дня»</strong> (Sandbox → Запитання дня) — учні анонімно відповідають на одне відкрите запитання. Корисно для вхідного контролю або рефлексії наприкінці теми.</p>
+            </div>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Імпортуйте слайди або PDF прямо в Padlet — кнопки <strong>«Імпортувати з Google Slides»</strong> або <strong>«Імпортувати PDF»</strong> у верхньому правому куті при створенні дошки. Кожна сторінка стає окремим дописом. Використайте презентацію або інфографіку з ЛР №3.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 2 -->
+    <section class="section" id="section-e2" style="border-top: 3px solid var(--padlet); border-radius:0; margin-bottom:0; margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon padlet">⚙️</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Налаштування фасилітації і модерації</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Важливо не просто дати доступ, а налаштувати <strong>правила взаємодії</strong> — це і є фасилітація цифрового середовища.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">2.1</span>
+          <div class="step-body">
+            <p class="step-title">Залучення (Engagement)</p>
+            <p>Налаштування (шестерня праворуч) → вкладка <strong>Залучення</strong>:</p>
+            <ul>
+              <li><strong>Коментарі:</strong> увімкніть — учні обговорюють запропоновані розв'язки</li>
+              <li><strong>Реакції:</strong> оберіть «Голос» (Vote) — інструмент вибору найкращого варіанту розв'язання</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.2</span>
+          <div class="step-body">
+            <p class="step-title">Авторство і безпека</p>
+            <ul>
+              <li><strong>Авторство:</strong> увімкніть «Показувати ім'я автора над дописом»</li>
+              <li><strong>Модерація:</strong> оберіть <strong>Manual</strong> — щоб неправильний розв'язок не з'являвся відразу у всіх. Вчитель переглядає і публікує</li>
+            </ul>
+            <div class="new-block">
+              <span class="new-badge">ПЕДАГОГІЧНА ЛОГІКА</span>
+              <p>Ручна модерація — не цензура, а методичний прийом: учні відчувають, що їхній внесок перевіряється, а не одразу зникає або з'являється з помилкою. Це підвищує відповідальність за якість відповіді.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.3</span>
+          <div class="step-body">
+            <p class="step-title">Диференціація через секції і видимість <span class="badge key">НОВА ФУНКЦІЯ</span></p>
+            <p>Якщо ваша дошка у форматі <strong>Shelf</strong> (Полиця), кожна колонка — це окрема секція. Padlet дозволяє налаштувати <strong>видимість кожної секції</strong> окремо: одні учні бачать одні колонки, інші — інші. Це вбудований інструмент диференціації без жодних додаткових сервісів.</p>
+            <p style="font-size:.84rem; color:var(--ink-3); margin:.5rem 0 .3rem; font-weight:600;">Педагогічний сценарій для фізики/математики:</p>
+            <ul>
+              <li><strong>Секція «Базовий рівень»</strong> — прості задачі з підстановкою у формулу; видима всім</li>
+              <li><strong>Секція «Поглиблений рівень»</strong> — задачі олімпіадного типу або з виведенням; видима лише для запрошених учнів</li>
+              <li><strong>Секція «Учительська»</strong> — еталонні розв'язки для перевірки; видима тільки вчителю або після дедлайну</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ЯК НАЛАШТУВАТИ</span>
+              <p>Три крапки (⋯) праворуч від назви секції → <strong>«Видимість секції»</strong> → оберіть: «Усі», «Лише автори», або «Запрошені». Для обмеженого доступу — запросіть конкретних учнів через email або посилання-запрошення (не загальне посилання на дошку, а індивідуальне).</p>
+            </div>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Це найпростіший спосіб реалізувати диференціацію в Padlet без додаткових сервісів: одна дошка — різний контент для різних учнів. Зафіксуйте у звіті, яку педагогічну ситуацію вирішує ця функція у вашому предметі.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.4</span>
+          <div class="step-body">
+            <p class="step-title">Sandbox — коротке ознайомче демо <span class="badge plus-b">+</span></p>
+            <p>Поверніться на Dashboard → <strong>+ Створити → Sandbox (Пісочниця)</strong>. Оберіть шаблон KWL Chart або порожнє полотно. Додайте 2–3 картки з ключовими поняттями теми, спробуйте перетягнути їх, угрупувавши. Натисніть <strong>Play</strong> — режим презентації.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Sandbox — для живого уроку (перетягування карток у реальному часі). Genially — для асинхронного дослідження вдома. Обидва варто знати, але з різною глибиною опрацювання.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 3 -->
+    <section class="section" id="section-e3" style="border-top: 3px solid var(--padlet); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-top:2px; margin-bottom:2rem;">
+      <div class="section-header">
+        <div class="section-icon padlet">🔗</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Інтеграція в Google Classroom</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Змініть приватність дошки</p>
+            <p>Стрілка «Поділитися» (Share) → змініть приватність з «Таємна» на <strong>«Відвідувачі можуть писати»</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Опублікуйте в Classroom</p>
+            <p>Share → <strong>Share via another app → Google Classroom</strong> → оберіть ваш курс → дія «Створити завдання». В описі завдання чітко вкажіть:</p>
+            <div class="prompt-block" style="margin-top:.4rem;">
+              <p class="prompt-label">Опис завдання для учнів</p>
+              <p class="prompt-text">Перейдіть за посиланням на дошку.
+Запропонуйте свій крок розв'язання задачі
+на тему <em>[ваша тема]</em>.
+Проголосуйте за найкращий варіант колеги.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ЧАСТИНА Б · GENIALLY ─────────────────────────────── -->
+    <div style="background:var(--genially-bg); border:1px solid #A7F3D0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:.875rem 1.5rem; margin-bottom:0; display:flex; align-items:center; gap:.75rem;">
+      <div style="width:10px; height:10px; border-radius:50%; background:var(--genially); flex-shrink:0;"></div>
+      <div>
+        <p style="font-size:.85rem; font-weight:700; color:var(--genially);">Частина Б · Genially</p>
+        <p style="font-size:.75rem; color:var(--ink-3);">Інтерактивний плакат — асинхронне дослідження учнем</p>
+      </div>
+    </div>
+
+    <!-- ЕТАП 4 -->
+    <section class="section" id="section-e4" style="border-top: 3px solid var(--genially); border-radius: 0; margin-bottom:0; margin-top:0; border-top-width:1px; border-top-color:#A7F3D0;">
+      <div class="section-header">
+        <div class="section-icon genially">✦</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Планування взаємодії через Gemini</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;"><strong>Інтерактив заради інтерактиву — погана педагогіка.</strong> Спочатку плануємо зміст, потім реалізуємо.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Сплануйте 4 гарячі точки через Gemini</p>
+            <div class="prompt-block" style="margin-top:.3rem;">
+              <p class="prompt-label">Промпт</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Я створюю інтерактивний плакат на тему
+<em>«[ваша тема з фізики / математики / інформатики]»</em>.
+Запропонуй 4 об'єкти на зображенні, які можуть бути
+інтерактивними, і напиши для кожного:
+1) Короткий факт або назву (для Tooltip — 1 рядок)
+2) Формулу або пояснення з виводом (для Window — 3–5 рядків)
+Мова — українська. Формули записуй словами.</p>
+            </div>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПРИКЛАДИ</span>
+              <p><strong>Фізика — «Електричне коло»:</strong> 4 гарячі точки на елементах схеми — резистор, амперметр, джерело струму, ключ — кожна відкриває формулу або визначення.<br>
+              <strong>Математика — «Графік функції»:</strong> точки на характерних ділянках — екстремум, точка перегину, асимптота — з поясненням математичної події у кожній точці.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Збережіть тексти</p>
+            <p>Скопіюйте отримані тексти — вони підуть у Tooltip і Window на наступному етапі. Перевірте формули вручну перед використанням.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 5 -->
+    <section class="section" id="section-e5" style="border-top: 3px solid var(--genially); border-radius:0; margin-bottom:0; margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon genially">🖼️</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Інтерактивний плакат — гарячі точки</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть Interactive Image</p>
+            <p>Genially → <strong>Create Genially → Interactive Image</strong>. Завантажте ваше фонове зображення — схему, графік або креслення (можна з ЛР3 або підготовлений матеріал).</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Додайте 4 гарячі точки — три типи взаємодії <span class="badge key">КЛЮЧОВИЙ КРОК</span></p>
+            <p>Зліва → <strong>Interactive elements</strong>. Перетягніть кнопки на ключові об'єкти. Для кожної гарячої точки налаштуйте тип взаємодії (іконка «Палець» → Interactivity):</p>
+            <div class="interaction-grid" style="margin-top:.6rem;">
+              <div class="interaction-card tooltip">
+                <h4>Tooltip · Підказка</h4>
+                <p>З'являється при наведенні миші. Для короткого факту або назви величини (1–2 рядки). Вставте Факт №1 з Gemini.</p>
+              </div>
+              <div class="interaction-card window">
+                <h4>Window · Вікно</h4>
+                <p>Відкривається при кліку. Для формули з поясненням або виведення. Вставте Факт №2 з Gemini.</p>
+              </div>
+              <div class="interaction-card link">
+                <h4>Link · Посилання</h4>
+                <p>Перехід на зовнішній ресурс — наприклад, Вікіпедія про фізичний закон або первинне джерело.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.3</span>
+          <div class="step-body">
+            <p class="step-title">Анімація для привернення уваги</p>
+            <p>Натисніть на гарячу точку → іконка «Метеорит» (Animation) → тип <strong>Continuous → Pulse</strong>. Пульсуюча анімація привертає увагу учня до ключового елемента — резистора, точки перегину тощо.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Додайте <strong>п'яту гарячу точку</strong> з анімацією Entrance (з'являється при завантаженні) на найважливіший елемент схеми — щоб учень відразу знав, з чого починати дослідження.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 6 -->
+    <section class="section" id="section-e6" style="border-top: 3px solid var(--genially); border-radius:0; margin-bottom:0; margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon genially">📎</div>
+        <div>
+          <p class="section-num">Етап 6</p>
+          <h2 class="section-title">Вбудовування мультимедіа (Embed)</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">6.1</span>
+          <div class="step-body">
+            <p class="step-title">Вбудуйте відео</p>
+            <p>Додайте нову мітку (іконка «Play») → тип взаємодії: <strong>Window</strong> → всередині вікна іконка відеокамери → вставте посилання на YouTube-відео за вашою темою.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.2</span>
+          <div class="step-body">
+            <p class="step-title">Вбудуйте Desmos або GeoGebra <span class="badge key">КЛЮЧОВИЙ КРОК</span></p>
+            <p>Це складніший крок — але саме він перетворює плакат на справжній дослідницький простір, де учень змінює параметри і бачить результат.</p>
+            <ul>
+              <li>Відкрийте ваш ресурс Desmos або GeoGebra з ЛР №1</li>
+              <li>Знайдіть кнопку <strong>Share → Embed</strong> → скопіюйте <code>&lt;iframe&gt;</code>-код</li>
+              <li>У Genially: нова мітка «Дослідити графік» → тип: Window</li>
+              <li>На панелі інструментів вікна (справа в кінці) натисніть <strong>Code View (&lt; &gt;)</strong></li>
+              <li>Вставте скопійований iframe-код → ресурс буде інтерактивним прямо всередині плаката</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПРЕДМЕТНА ЦІННІСТЬ</span>
+              <p>Учень не просто «переглядає картинку». Він може змінити коефіцієнт у рівнянні, посунути точку на графіку, відстежити, як змінюється фізична величина — <strong>не виходячи з плаката</strong>. Це принципово інший рівень взаємодії з матеріалом.</p>
+            </div>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Перевірте роботу вбудованого ресурсу в режимі «Інкогніто» — іноді iframe-код не відображається з кешованої версії. Якщо Desmos/GeoGebra не завантажується, переконайтеся, що посилання має публічний доступ.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 7 -->
+    <section class="section" id="section-e7" style="border-top: 3px solid var(--genially); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-top:2px; margin-bottom:1.25rem;">
+      <div class="section-header">
+        <div class="section-icon genially">🎯</div>
+        <div>
+          <p class="section-num">Етап 7</p>
+          <h2 class="section-title">Quiz з предметним питанням і публікація</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">7.1</span>
+          <div class="step-body">
+            <p class="step-title">Додайте сторінку Quiz</p>
+            <p>Add Page → шаблон <strong>Quiz</strong> або створіть питання вручну. Питання має бути предметним — не абстрактним тестовим:</p>
+            <ul>
+              <li><strong>Фізика:</strong> розрахункова задача з підстановкою в формулу (наприклад: «Чому дорівнює прискорення тіла масою 2 кг під дією сили 10 Н?» — варіанти: 2, 5, 20, 0.2 м/с²)</li>
+              <li><strong>Математика:</strong> конкретний приклад або задача на застосування теореми</li>
+              <li><strong>Інформатика:</strong> задача на алгоритм або структуру даних</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.2</span>
+          <div class="step-body">
+            <p class="step-title">Налаштуйте розгалужену навігацію</p>
+            <p>Клік на <strong>Правильну відповідь</strong> → Go to page → сторінка «Молодець!» або «Фініш».<br>
+            Клік на <strong>Неправильну відповідь</strong> → Go to page → вікно «Спробуй ще раз» із підказкою: яку формулу варто застосувати.</p>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Додайте <strong>другий рівень Quiz</strong> — після правильної відповіді учень потрапляє на складнішу задачу, після неправильної — на спрощену. Це елементарна адаптивна логіка: принцип, який ви розвинете до повноцінного адаптивного тесту в ЛР №7.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.3</span>
+          <div class="step-body">
+            <p class="step-title">Опублікуйте і перевірте</p>
+            <p>Кнопка <strong>All set!</strong> (ракета у правому верхньому куті) → <strong>Public online</strong> → дайте назву → <strong>Share → скопіюйте посилання</strong>. Обов'язково перевірте в режимі «Інкогніто»: чи відкриваються всі вікна, чи працює Desmos/GeoGebra, чи правильно переходить Quiz.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Додайте плакат у Google Classroom як «Матеріал» з описом завдання для учня: що конкретно він має зробити — не просто «переглянь», а «досліди три елементи схеми, запиши формулу з вікна і розв'яжи задачу на останньому слайді».</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на дошку Padlet з щонайменше 4 дописами різних типів (текст з AI, зображення/PDF, посилання на Desmos/GeoGebra, відео або аудіо)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот завдання у Google Classroom із прикріпленою дошкою Padlet</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на проєкт Genially — перевірене в режимі «Інкогніто»</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот екрана редагування Genially з відкритим вікном Code View та вбудованим <code>&lt;iframe&gt;</code> Desmos або GeoGebra</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот налаштування видимості секції Padlet + 1–2 речення: яку педагогічну ситуацію вирішує ця функція у вашому предметі</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Короткий висновок (2–3 речення): з якими труднощами зіткнулись при вбудовуванні iframe і як вирішили</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Скріншот Sandbox-демо з перегрупованими картками</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Посилання на матеріал у Google Classroom із Genially-плакатом і описом завдання для учня</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Скріншот другого рівня Quiz з розгалуженою адаптивною логікою</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <ol class="reflection-list">
+        <li><span class="ref-num">1</span><span>Яку роль виконує Padlet у роботі з класом над задачами? Чому важливо, щоб учні бачили внесок одне одного — а не лише правильну відповідь?</span></li>
+        <li><span class="ref-num">2</span><span>Як функція видимості секцій змінює можливості Padlet для диференційованого навчання? Які обмеження цього підходу порівняно з повноцінною LMS-системою?</span></li>
+        <li><span class="ref-num">3</span><span>Порівняйте вашу презентацію Canva (ЛР3) і плакат Genially. Як змінюється роль учня при роботі з першим і другим? Де учень — споживач, де — дослідник?</span></li>
+        <li><span class="ref-num">4</span><span>Чим принципово відрізняється вбудований Desmos/GeoGebra від статичного зображення графіка? Що учень може зробити з інтерактивним ресурсом, чого не може зі статичною картинкою?</span></li>
+        <li><span class="ref-num">5</span><span>З якими труднощами ви зіткнулись при вбудовуванні iframe-коду? Чи вважаєте цю навичку корисною для єдиного навчального середовища?</span></li>
+        <li><span class="ref-num">6</span><span>Аналіз ризиків: що станеться з вашим плакатом, якщо автор видалить відео з YouTube або змінить налаштування доступу до Desmos/GeoGebra? Як педагогу убезпечитись від таких ситуацій?</span></li>
+        <li><span class="ref-num">7</span><span>Тепер, коли Padlet і Genially виконані в межах однієї роботи, де ви б використали кожен окремо, а де — разом у реальному уроці з вашого предмету?</span></li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li><span class="res-icon">📌</span><div><a href="https://padlet.com" target="_blank">Padlet</a><div style="font-size:.8rem; color:var(--ink-3);">Стіна, Стовпці, Шкала, Стіл, Sandbox — 3 безкоштовні дошки на акаунт; імпорт Google Slides і PDF</div></div></li>
+        <li><span class="res-icon">🟢</span><div><a href="https://genially.com" target="_blank">Genially</a><div style="font-size:.8rem; color:var(--ink-3);">Interactive Image, Quiz, анімації — повністю безкоштовно для базового функціоналу</div></div></li>
+        <li><span class="res-icon">📐</span><div><a href="https://www.desmos.com/calculator" target="_blank">Desmos</a> / <a href="https://www.geogebra.org" target="_blank">GeoGebra</a><div style="font-size:.8rem; color:var(--ink-3);">Джерело iframe-коду — Share → Embed → скопіюйте код для Genially</div></div></li>
+        <li><span class="res-icon">✦</span><div><a href="https://gemini.google.com" target="_blank">Gemini</a><div style="font-size:.8rem; color:var(--ink-3);">Планування гарячих точок і текстів для Tooltip/Window</div></div></li>
+        <li><span class="res-icon">🎓</span><div><a href="https://support.google.com/edu/classroom" target="_blank">Google Classroom</a><div style="font-size:.8rem; color:var(--ink-3);">Інтеграція Padlet через Share → Google Classroom</div></div></li>
+      </ul>
+      <div class="tip-block" style="margin-top:1rem;">
+        <span class="tip-icon">💡</span>
+        <p><strong>Tooltip vs Window:</strong> Tooltip — мало тексту, ідеально для назви величини або короткого числа (з'являється при наведенні). Window — багато контенту, ідеально для формули з поясненням або виведенням (відкривається при кліку). Не змішуйте — учень має розуміти логіку взаємодії.</p>
+      </div>
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ЛІМІТИ</span>
+        <p><strong>Padlet:</strong> 3 дошки безкоштовно. <strong>Genially:</strong> необмежено проєктів на безкоштовному тарифі, але без деяких преміум-шаблонів — базового функціоналу для цієї роботи достатньо. <strong>Desmos і GeoGebra:</strong> повністю безкоштовні і без реєстрації для перегляду.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  function toggleCheck(li) { li.classList.toggle('done'); }
+
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => btn.textContent = 'Копіювати', 2000);
+    });
+  }
+</script>
+</body>
+</html>
