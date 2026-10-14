@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №5 · Перевернутий клас: Gemini Notebook</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --plus-bg: #F0FDF4; --plus-border: #86EFAC; --plus-text: #166534;
+    --star-bg: #FFF7ED; --star-border: #FED7AA; --star-text: #9A3412;
+    --nb: #4285F4; --nb-bg: #EBF2FF;
+    --ai: #00BF6F; --ai-bg: #ECFDF5;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--nb), var(--ai)); width: 0%; transition: width .2s ease; }
+
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(66,133,244,.25) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  .legend-bar { background: var(--card); border-bottom: 1px solid var(--border); }
+  .legend-inner { max-width: 980px; margin: 0 auto; padding: .75rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
+  .ld { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 1.5rem 1.5rem 4rem; align-items: start; }
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+  .main { min-width: 0; }
+
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-icon.nb { background: var(--nb-bg); }
+  .section-icon.ai { background: var(--ai-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p, .step-body li { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { padding-left: 1.1em; position: relative; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  .level-block { border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .level-block.plus { background: var(--plus-bg); border: 1px solid var(--plus-border); }
+  .level-block.star { background: var(--star-bg); border: 1px solid var(--star-border); }
+  .level-block.plus p { font-size: .84rem; color: var(--plus-text); line-height: 1.6; }
+  .level-block.star p { font-size: .84rem; color: var(--star-text); line-height: 1.6; }
+  .level-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+  .level-badge.plus { background: var(--success); color: #fff; }
+  .level-badge.star { background: var(--new); color: #fff; }
+
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* TOOL TABLE */
+  .tool-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: .75rem; }
+  .tool-table thead th { background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; padding: .6rem .875rem; text-align: left; border-bottom: 2px solid var(--border); }
+  .tool-table tbody td { padding: .6rem .875rem; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: top; line-height: 1.5; }
+  .tool-table tbody tr:last-child td { border-bottom: none; }
+  .tool-table tbody tr:hover td { background: var(--surface); }
+  .td-tool { font-weight: 600; color: var(--ink); }
+  .td-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .td-link a:hover { text-decoration: underline; }
+
+  /* PROMPT */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* PART DIVIDER */
+  .part-div { border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: .875rem 1.5rem; display: flex; align-items: center; gap: .75rem; margin-top: 1.5rem; margin-bottom: 0; }
+  .part-div.nb { background: var(--nb-bg); border: 1px solid #C7D7FC; border-bottom: none; }
+  .part-div.ai-lb { background: var(--ai-bg); border: 1px solid #A7F3D0; border-bottom: none; }
+  .part-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .part-dot.nb { background: var(--nb); }
+  .part-dot.ai { background: var(--ai); }
+  .part-title { font-size: .875rem; font-weight: 700; }
+  .part-title.nb { color: var(--nb); }
+  .part-title.ai-c { color: var(--ai); }
+  .part-sub { font-size: .78rem; color: var(--ink-3); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai-b { background: var(--accent); color: #fff; }
+  .badge.plus-b { background: var(--success); color: #fff; }
+  .badge.star-b { background: var(--new); color: #fff; }
+  .badge.warn-b { background: var(--warn); color: #fff; }
+  .badge.key { background: #DC2626; color: #fff; }
+
+  .reflection-list { list-style: none; }
+  .reflection-list li { display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .ref-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  /* FLIPPED DIAGRAM */
+  .flipped-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: .75rem; align-items: center; margin-top: .75rem; }
+  .flipped-card { border-radius: var(--radius); padding: 1rem; text-align: center; }
+  .flipped-card.home { background: var(--nb-bg); border: 1px solid #C7D7FC; }
+  .flipped-card.class { background: var(--ai-bg); border: 1px solid #A7F3D0; }
+  .flipped-card h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .35rem; }
+  .flipped-card.home h4 { color: var(--nb); }
+  .flipped-card.class h4 { color: var(--ai); }
+  .flipped-card p { font-size: .8rem; color: var(--ink-2); line-height: 1.5; }
+  .arrow-box { font-size: 1.5rem; color: var(--ink-3); text-align: center; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .flipped-grid { grid-template-columns: 1fr; }
+    .arrow-box { transform: rotate(90deg); }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">Лабораторна робота № 5</div>
+    <h1>Перевернутий клас:<br>Gemini Notebook — повний цикл</h1>
+    <p class="header-sub">Адаптована версія · Фізика, математика, інформатика · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~4 години (2 аудиторно + 2 самостійно)</span>
+      <span class="meta-chip">🛠 Gemini Notebook · Студія (9 інструментів) · Google Classroom</span>
+      <span class="meta-chip">🔗 Джерело і тема з ЛР №1</span>
+    </div>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span style="font-size:.75rem; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;">Позначки:</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--accent);"></span> Базовий — обов'язково</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--success);"></span> <strong style="color:var(--success)">+</strong> Розширення</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--new);"></span> <strong style="color:var(--new)">★</strong> Творче</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · База знань</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · RAG-контроль</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · Студія</a></li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Аудіо і відео</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Чат</a></li>
+      <li><a class="nav-link" href="#section-e6" onclick="setActive(this)"><span class="nav-num">8</span> Етап 6 · Classroom</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Перевернутий клас і повне освоєння Gemini Notebook</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Ця робота — про методику «перевернутого класу» і про глибоке освоєння Gemini Notebook як комплексного інструменту. Ви пройдете повний цикл: від завантаження джерела до публікації різноформатних матеріалів у Google Classroom.</p>
+
+      <div class="flipped-grid">
+        <div class="flipped-card home">
+          <h4>🏠 Вдома</h4>
+          <p>Учень отримує матеріали зі Студії Gemini Notebook — Study Guide, флешкартки, аудіопереказ, інфографіка</p>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="flipped-card class">
+          <h4>🏫 В класі</h4>
+          <p>Учень проходить тест, обговорює ментальну карту, звіт або таблицю даних — всі матеріали з того самого Gemini Notebook</p>
+        </div>
+      </div>
+
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">🔗</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Наскрізний зв'язок із попередніми роботами</p>
+          <p>Тема і джерело — з ЛР №1. Досвід валідації обчислень з ЛР №2 застосовується тут до RAG-контролю формул. Результати публікуються в Google Classroom з ЛР №1.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Ви готуєте урок за складною темою з вашого курсу. Є PDF-підручника або стаття з виведенням формули чи доведенням теореми — але матеріал занадто об'ємний або складний для самостійного опрацювання учнями.</p>
+      <p style="color:var(--ink-2); font-size:.875rem;">Замість того, щоб «переказувати параграф» на уроці, ви надаєте учням матеріали з Gemini Notebook для домашнього опрацювання, а аудиторний час використовуєте для розв'язання задач та обговорення. Усі матеріали — з одного джерела, одного інструменту.</p>
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ВИМОГА ДО ДЖЕРЕЛА</span>
+        <p>Джерело <strong>обов'язково</strong> має містити виведення формули, доведення теореми або детальний розбір закону — не довільний текст. Це важливо для RAG-контролю в Етапі 2.</p>
+      </div>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підготувати файл (PDF або DOCX) за вашою темою з <strong>виведенням формули або доведенням теореми</strong></span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати акаунт Google — Gemini Notebook доступний на <a href="https://notebooklm.google.com" target="_blank" style="color:var(--accent)">notebooklm.google.com</a> без окремої реєстрації</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до Google Classroom з ЛР №1 — результати публікуються туди</span></li>
+      </ul>
+    </section>
+
+    <!-- ЕТАП 1 -->
+    <section class="section" id="section-e1" style="border-top:3px solid var(--nb);">
+      <div class="section-header">
+        <div class="section-icon nb">📓</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Створення бази знань і Study Guide</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть новий записник</p>
+            <p>Перейдіть на <a href="https://notebooklm.google.com" target="_blank" style="color:var(--accent)">notebooklm.google.com</a> → <strong>New Notebook</strong> → назвіть темою вашого уроку.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Завантажте джерело</p>
+            <p>Натисніть <strong>Add source</strong> → завантажте ваш PDF або DOCX. Gemini Notebook опрацює джерело і створить автоматичний короткий зміст (Summary).</p>
+            <div class="tip-block">
+              <span class="tip-icon">💡</span>
+              <p>Можна додати кілька джерел — наприклад, підручник і наукову статтю до тієї ж теми. Студія генерує матеріали на основі всіх завантажених джерел одночасно.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2b</span>
+          <div class="step-body">
+            <p class="step-title">Нотатки — новий формат роботи з джерелом</p>
+            <p>Поруч із кнопкою «Додати джерела» є кнопка <strong>«+ Створити нотатку»</strong>. Нотатки зберігаються разом із джерелами і мають особливі властивості:</p>
+            <ul>
+              <li>З нотаткою можна <strong>спілкуватись у чаті</strong> — ставити запитання на основі її змісту</li>
+              <li>На нотатку можна <strong>робити посилання</strong> з інших нотаток</li>
+              <li>На основі нотатки Студія може <strong>створювати контент</strong> (так само як на основі завантаженого PDF)</li>
+            </ul>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Створіть нотатку з вашим власним конспектом або планом уроку — і Gemini Notebook зможе генерувати матеріали Студії, поєднуючи ваш авторський текст із завантаженим підручником. Це принципово інший рівень персоналізації контенту.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2c</span>
+          <div class="step-body">
+            <p class="step-title">Пошук у Інтернеті — Швидкий пошук і Deep Research <span class="badge plus-b">+</span></p>
+            <p>Gemini Notebook дозволяє шукати додаткові джерела прямо з інтерфейсу. Натисніть <strong>«Інтернет»</strong> поруч із полем пошуку і оберіть режим:</p>
+            <ul>
+              <li><strong>Швидкий пошук</strong> — швидкі результати за ключовим запитом; підходить для пошуку додаткових прикладів або ілюстрацій до теми</li>
+              <li><strong>Deep Research</strong> — докладний звіт із результатами; підходить для збору кількох академічних або методичних джерел до теми</li>
+            </ul>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Знайдені джерела можна одразу додати до вашого записника — і Студія автоматично враховуватиме їх разом із вашим PDF.</p>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПЕДАГОГІЧНА ЦІННІСТЬ</span>
+              <p>Deep Research — це не просто пошук, а автоматична підготовка огляду літератури. Для вчителя це можливість швидко знайти методичні матеріали або актуальні приклади застосування теми в реальному житті, щоб збагатити урок.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.3</span>
+          <div class="step-body">
+            <p class="step-title">Згенеруйте Study Guide і FAQ через чат</p>
+            <p>Study Guide і FAQ генеруються через чат, а не через панель Студії. У полі чату внизу натисніть одну з підказок (Chips) — зазвичай там є готові кнопки <strong>«Study guide»</strong> і <strong>«FAQ»</strong>. Якщо підказок не видно — введіть запит вручну:</p>
+            <div class="prompt-block" style="margin-top:.4rem;">
+              <p class="prompt-label">Промпти</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Створи навчальний гід (Study Guide) з цього джерела
+для учнів <em>[ваш клас]</em> класу українською мовою.
+
+Склади FAQ (10 найпоширеніших запитань учнів)
+з цього матеріалу українською мовою.</p>
+            </div>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Порівняйте формати: Study Guide структурований для вивчення, FAQ — для відповідей на типові запитання.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Під кожною відповіддю чату є два корисні інструменти: <strong>📌 «Зберегти в нотатці»</strong> — додає відповідь у розділ нотаток записника (зручно для збору матеріалів до Classroom), і <strong>«Копіювати»</strong> — копіює текст у буфер. Використовуйте «Зберегти в нотатці» для Study Guide і FAQ — вони залишаться прямо у вашому записнику.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 2 -->
+    <section class="section" id="section-e2" style="border-top:3px solid var(--nb); margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon nb">🔍</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">RAG-контроль — перевірка формул <span class="badge key">ОБОВ'ЯЗКОВО</span></h2>
+        </div>
+      </div>
+      <div class="ai-block">
+        <div class="ai-icon">🔬</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Що таке RAG і чому він не ідеальний</p>
+          <p>Gemini Notebook використовує технологію RAG (Retrieval-Augmented Generation): відповідає на основі вашого файлу, а не загальних знань. Це знижує ризик «галюцинацій», але <strong>не усуває</strong> їх — особливо в формульному контенті. Перевірка є окремим обов'язковим кроком.</p>
+        </div>
+      </div>
+      <div class="steps" style="margin-top:.75rem;">
+        <div class="step">
+          <span class="step-marker">2.1</span>
+          <div class="step-body">
+            <p class="step-title">Знайдіть формулу в Study Guide</p>
+            <p>Відкрийте згенерований Study Guide. Знайдіть формулу або рівняння з вашої теми.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.2</span>
+          <div class="step-body">
+            <p class="step-title">Порівняйте посимвольно з оригіналом</p>
+            <ul>
+              <li>Позначення змінних — чи збігаються?</li>
+              <li>Індекси і степені — чи не «з'їхали»?</li>
+              <li>Коефіцієнти і числа — чи точні?</li>
+              <li>Одиниці виміру — чи зазначені коректно?</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.3</span>
+          <div class="step-body">
+            <p class="step-title">Зафіксуйте результат</p>
+            <p>Запишіть: яку формулу перевіряли, що Gemini Notebook написав, що стоїть в оригіналі. Якщо збіг повний — це теж важливий результат. Якщо є розбіжність — це ілюстрація того, чому RAG потребує людської перевірки навіть при роботі з власним джерелом.</p>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ДЛЯ ЗВІТУ</span>
+              <p>Цей крок є ключовим педагогічним висновком роботи: конкретний, документований, з цитатою зі Study Guide і скріншотом оригіналу.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 3 -->
+    <section class="section" id="section-e3" style="border-top:3px solid var(--nb); margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon nb">🛠️</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Студія — всі 9 інструментів</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:1rem;">Студія генерує різноформатні матеріали з одного джерела. Спробуйте кожен інструмент і для кожного запишіть у звіті: яке педагогічне завдання він вирішує найкраще.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.75rem;">
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #4285F4;">
+          <p style="font-size:.78rem; font-weight:700; color:#4285F4; margin-bottom:.3rem;">🃏 Флешкартки</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Пари «поняття — визначення» або «формула — назва закону». Для самоперевірки учня вдома або повторення перед контрольною.</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #00BF6F;">
+          <p style="font-size:.78rem; font-weight:700; color:#00BF6F; margin-bottom:.3rem;">📝 Тест</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Питання з варіантами відповідей. <strong>Обов'язково перевірте числові відповіді вручну</strong> — RAG-контроль для тесту так само важливий, як для Study Guide.</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #00BF6F;">
+          <p style="font-size:.78rem; font-weight:700; color:#00BF6F; margin-bottom:.3rem;">🧠 Ментальна карта</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Візуальна структура зв'язків між поняттями. Для показу учням логіки розділу перед вивченням або як підсумок теми.</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #F59E0B;">
+          <p style="font-size:.78rem; font-weight:700; color:#F59E0B; margin-bottom:.3rem;">🖼️ Презентація</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Слайди на основі джерела. Порівняйте з вашою Canva-презентацією з ЛР №3 — де більше контролю над дизайном, де більше швидкість?</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #F59E0B;">
+          <p style="font-size:.78rem; font-weight:700; color:#F59E0B; margin-bottom:.3rem;">📊 Інфографіка</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Візуальне резюме з ключовими фактами. Порівняйте з інфографікою Canva з ЛР №3 — де точніше відображені формули?</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #8B5CF6;">
+          <p style="font-size:.78rem; font-weight:700; color:#8B5CF6; margin-bottom:.3rem;">📋 Звіти <span style="background:#8B5CF6; color:#fff; font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; margin-left:3px;">НОВИНКА</span></p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Структурований аналіз джерела з висновками. Для дослідницьких або проєктних завдань, де потрібен не переказ, а аналіз.</p>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:.75rem; border-left:3px solid #8B5CF6;">
+          <p style="font-size:.78rem; font-weight:700; color:#8B5CF6; margin-bottom:.3rem;">📈 Таблиця даних</p>
+          <p style="font-size:.8rem; color:var(--ink-2); line-height:1.5;">Структуровані числові дані з джерела. Особливо корисна, якщо джерело містить виміри, константи або порівняльні характеристики.</p>
+        </div>
+      </div>
+
+      <div class="new-block">
+        <span class="new-badge">ДЛЯ ЗВІТУ</span>
+        <p>Скріншоти всіх 7 інструментів (окрім Аудіопереказу і Відеоогляду — вони в Етапі 4) + для кожного одне речення: яке педагогічне завдання він вирішує і в якому моменті уроку ви б його використали.</p>
+      </div>
+      <div class="level-block plus">
+        <span class="level-badge plus">+</span>
+        <p>Порівняйте <strong>Презентацію</strong> та <strong>Інфографіку</strong> з Gemini Notebook і з вашими матеріалами з ЛР №3 (Canva). Три критерії: точність формул, якість дизайну, час на створення.</p>
+      </div>
+    </section>
+
+    <!-- ЕТАП 4 -->
+    <section class="section" id="section-e4" style="border-top:3px solid var(--nb); margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon nb">🎙️</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Аудіопереказ і Відеоогляд</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Налаштуйте Аудіопереказ</p>
+            <p>Студія → <strong>Аудіопереказ</strong> → натисніть <strong>Налаштувати</strong>. У вікні налаштувань оберіть:</p>
+            <ul>
+              <li><strong>Формат:</strong> спробуйте всі чотири варіанти по черзі — «Глибокий аналіз» (діалог двох ведучих), «Коротка версія» (стислий огляд), «Рецензія» (оцінка джерела), «Дебати» (різні точки зору)</li>
+              <li><strong>Мова:</strong> оберіть <strong>«українська»</strong></li>
+              <li><strong>На чому зосередитися:</strong> введіть фокусне питання, наприклад: <em>«Поясни ключові кроки виведення [формула] простою мовою для учнів [клас] класу»</em></li>
+            </ul>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>«Глибокий аналіз» найкраще підходить для домашньої підготовки — ведучі обговорюють і ставлять питання, що активує слухання. «Коротка версія» — для повторення перед контрольною. Спробуйте обидва і порівняйте.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Перевірте вимову формул</p>
+            <p>Прослухайте подкаст, звертаючи увагу на моменти, коли ведучі вимовляють формули і числа. Синтез мовлення може спотворювати математичний запис — зафіксуйте у звіті, чи виникло таке спотворення.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.3</span>
+          <div class="step-body">
+            <p class="step-title">Завантажте аудіофайл</p>
+            <p>Три крапки (⋯) біля плеєра → <strong>Завантажити</strong> → збережіть MP3. Він знадобиться для розміщення в Classroom на Етапі 6.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.4</span>
+          <div class="step-body">
+            <p class="step-title">Відеоогляд <span class="badge plus-b">+</span></p>
+            <p>Студія → <strong>Відеоогляд</strong> → Generate. Gemini Notebook створить відеолекцію зі слайдами та озвученням. Перегляньте і зафіксуйте у звіті: як відображаються формули на слайдах і чи є відмінності між аудіо і відео у точності відтворення формульного контенту.</p>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Порівняйте <strong>всі три формати</strong> озвучення на одну тему: Аудіопереказ «Глибокий аналіз» vs «Коротка версія» vs Відеоогляд. Яким форматом ви б замінили домашнє читання параграфа — і чому?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 5 -->
+    <section class="section" id="section-e5" style="border-top:3px solid var(--nb); margin-top:2px;">
+      <div class="section-header">
+        <div class="section-icon nb">💬</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Чат із джерелом</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Чат Gemini Notebook — це не просто «запитати AI», а <strong>діалог із вашим джерелом</strong>: відповіді базуються на завантаженому файлі, а не на загальних знаннях. Кожна відповідь супроводжується посиланням на конкретний фрагмент джерела.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Виділіть 5 ключових тез</p>
+            <div class="prompt-block" style="margin-top:.3rem;">
+              <p class="prompt-label">Промпт</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Виділи 5 ключових концепцій цього тексту,
+адаптованих для учнів <em>[ваш клас]</em> класу
+українською мовою,
+зберігаючи формули в оригінальному вигляді.</p>
+            </div>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Скопіюйте отримані тези — вони стануть описом для матеріалу у Classroom.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Поставте 3 предметних запитання</p>
+            <p>Сформулюйте три запитання від імені учня — такі, що могли б виникнути під час домашньої підготовки. Наприклад:</p>
+            <ul>
+              <li>«Чому у формулі [назва] використовується саме квадрат, а не куб?»</li>
+              <li>«Яке фізичне/математичне пояснення знаку мінус у цьому рівнянні?»</li>
+              <li>«Як зміниться результат, якщо [змінна] збільшиться вдвічі?»</li>
+            </ul>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Зафіксуйте: чи посилається Gemini Notebook на конкретне місце в джерелі? Чи є відповідь точнішою, ніж у вільному чаті Gemini без джерела? Натисніть <strong>📌 «Зберегти в нотатці»</strong> під найцікавішою відповіддю — вона залишиться у вашому записнику.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Задайте те саме запитання у прямому чаті Gemini (без джерела). Порівняйте відповіді: де більше точність, де більше деталей, де є посилання на першоджерело.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЕТАП 6 -->
+    <section class="section" id="section-e6" style="border-top:3px solid var(--nb); margin-top:2px; margin-bottom:1.25rem;">
+      <div class="section-header">
+        <div class="section-icon nb">🔗</div>
+        <div>
+          <p class="section-num">Етап 6</p>
+          <h2 class="section-title">Інтеграція в Google Classroom</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Розподіліть матеріали зі Студії між двома режимами навчання — «вдома» і «в класі».</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">6.1</span>
+          <div class="step-body">
+            <p class="step-title">Матеріали для домашньої підготовки</p>
+            <p>Google Classroom → «Матеріал» → назва «Підготуйтесь до уроку: [тема]». Додайте:</p>
+            <ul>
+              <li>Посилання на записник Gemini Notebook (Share → Viewer access)</li>
+              <li>PDF Study Guide (завантажте зі Студії)</li>
+              <li>MP3 Аудіопереказ (завантажте на Google Drive)</li>
+              <li>Флешкартки — скріншот або посилання</li>
+            </ul>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">В описі матеріалу вкажіть учням конкретне завдання: що саме опрацювати і що знати до уроку.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.2</span>
+          <div class="step-body">
+            <p class="step-title">Матеріали для роботи в класі</p>
+            <p>Google Classroom → окремий «Матеріал» або «Завдання» → назва «На уроці: [тема]». Додайте:</p>
+            <ul>
+              <li>Тест зі Студії (посилання або скріншот)</li>
+              <li>Ментальну карту для обговорення</li>
+              <li>Таблицю даних або Звіт — для аналізу в групах</li>
+            </ul>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Тест, згенерований Gemini Notebook, можна використати як вхідний контроль на початку уроку: учні вже опрацювали матеріал вдома — і одразу видно, хто готувався, а хто ні.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на записник Gemini Notebook (Share → Viewer access)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот створеної нотатки (Етап 1.2b) + 1 речення: як ви її використали або плануєте використати в підготовці уроку</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Скріншот результату Інтернет-пошуку (Швидкий пошук або Deep Research) + коментар: що знайшли і чи додали до записника</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge warn-b">RAG</span> Результат RAG-контролю (Етап 2): що Gemini Notebook написав vs що стоїть в оригіналі. Навіть якщо збіг повний — зафіксуйте</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншоти всіх 7 інструментів Студії (Флешкартки, Тест, Ментальна карта, Презентація, Інфографіка, Звіти, Таблиця даних) + по одному реченню до кожного</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот налаштувань Аудіопереказу + коментар щодо вимови формул</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот чату (Етап 5) — три запитання і відповіді з посиланнями на джерело</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот двох матеріалів у Google Classroom («вдома» і «в класі») з описами завдань</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Скріншот Відеоогляду + порівняльний коментар: аудіо vs відео у точності формул</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Порівняння Презентації/Інфографіки Gemini Notebook vs Canva (ЛР №3)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Порівняння трьох форматів озвучення: Глибокий аналіз vs Коротка версія vs Відеоогляд</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <ol class="reflection-list">
+        <li><span class="ref-num">1</span><span>Як технологія RAG допомагає уникнути «галюцинацій» ШІ — і де її межі? Що ваш RAG-контроль показав у Етапі 2?</span></li>
+        <li><span class="ref-num">2</span><span>Який інструмент Студії виявився для вас найкориснішим — і чому? Який — найменш корисним для вашого предмету?</span></li>
+        <li><span class="ref-num">3</span><span>Чи може Аудіопереказ замінити читання параграфа для сучасних учнів — чи має бути лише доповненням? Який формат (Глибокий аналіз / Коротка версія / Рецензія / Дебати) підходить для вашої теми і чому?</span></li>
+        <li><span class="ref-num">4</span><span>Порівняйте відповіді чату Gemini Notebook (з джерелом) і прямого Gemini (без джерела) на те саме запитання. Де відповідь точніша, де детальніша?</span></li>
+        <li><span class="ref-num">5</span><span>Якими матеріалами зі Студії ви б замінили традиційне домашнє завдання «прочитати параграф»? Обґрунтуйте педагогічно.</span></li>
+        <li><span class="ref-num">6</span><span>Які ризики несе «перевернутий клас», якщо учні не виконали домашню підготовку? Як можна це врахувати — і які матеріали Gemini Notebook допоможуть перевірити готовність на початку уроку?</span></li>
+        <li><span class="ref-num">7</span><span>Як функція нотаток змінює логіку роботи з Gemini Notebook — порівняно з простим завантаженням PDF? Які сценарії використання нотаток найбільш цінні для вчителя фізики/математики/інформатики?</span></li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li><span class="res-icon">📓</span><div><a href="https://notebooklm.google.com" target="_blank">Gemini Notebook</a><div style="font-size:.8rem; color:var(--ink-3);">Study Guide, Флешкартки, Тест, Ментальна карта, Презентація, Інфографіка, Звіти, Таблиця даних, Аудіопереказ, Відеоогляд — безкоштовно через Google-акаунт</div></div></li>
+        <li><span class="res-icon">🧮</span><div><a href="https://www.wolframalpha.com" target="_blank">Wolfram Alpha</a><div style="font-size:.8rem; color:var(--ink-3);">Перевірка обчислень і формул під час RAG-контролю</div></div></li>
+        <li><span class="res-icon">✦</span><div><a href="https://gemini.google.com" target="_blank">Gemini (прямий чат)</a><div style="font-size:.8rem; color:var(--ink-3);">Для порівняння з чатом Gemini Notebook — те саме запитання без джерела</div></div></li>
+        <li><span class="res-icon">🎓</span><div><a href="https://support.google.com/edu/classroom" target="_blank">Google Classroom</a><div style="font-size:.8rem; color:var(--ink-3);">Публікація матеріалів для домашньої підготовки і роботи в класі</div></div></li>
+      </ul>
+      <div class="warn-block" style="margin-top:1rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💡</span>
+        <p><strong>Ліміти:</strong> Gemini Notebook — безкоштовно через Google-акаунт, без окремої реєстрації. Wolfram Alpha — безкоштовно без реєстрації.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+  function toggleCheck(li) { li.classList.toggle('done'); }
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => btn.textContent = 'Копіювати', 2000);
+    });
+  }
+</script>
+</body>
+</html>
