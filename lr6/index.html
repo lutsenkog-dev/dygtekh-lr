@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №6 · Формувальне оцінювання і гейміфікація</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --plus-bg: #F0FDF4; --plus-border: #86EFAC; --plus-text: #166534;
+    --star-bg: #FFF7ED; --star-border: #FED7AA; --star-text: #9A3412;
+    --nb: #4285F4; --nb-bg: #EBF2FF;
+    --ai: #00BF6F; --ai-bg: #ECFDF5;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--nb), var(--ai)); width: 0%; transition: width .2s ease; }
+
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(66,133,244,.25) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  .legend-bar { background: var(--card); border-bottom: 1px solid var(--border); }
+  .legend-inner { max-width: 980px; margin: 0 auto; padding: .75rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
+  .ld { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 1.5rem 1.5rem 4rem; align-items: start; }
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+  .main { min-width: 0; }
+
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-icon.nb { background: var(--nb-bg); }
+  .section-icon.ai { background: var(--ai-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p, .step-body li { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { padding-left: 1.1em; position: relative; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  .level-block { border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .level-block.plus { background: var(--plus-bg); border: 1px solid var(--plus-border); }
+  .level-block.star { background: var(--star-bg); border: 1px solid var(--star-border); }
+  .level-block.plus p { font-size: .84rem; color: var(--plus-text); line-height: 1.6; }
+  .level-block.star p { font-size: .84rem; color: var(--star-text); line-height: 1.6; }
+  .level-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+  .level-badge.plus { background: var(--success); color: #fff; }
+  .level-badge.star { background: var(--new); color: #fff; }
+
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* TOOL TABLE */
+  .tool-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: .75rem; }
+  .tool-table thead th { background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; padding: .6rem .875rem; text-align: left; border-bottom: 2px solid var(--border); }
+  .tool-table tbody td { padding: .6rem .875rem; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: top; line-height: 1.5; }
+  .tool-table tbody tr:last-child td { border-bottom: none; }
+  .tool-table tbody tr:hover td { background: var(--surface); }
+  .td-tool { font-weight: 600; color: var(--ink); }
+  .td-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .td-link a:hover { text-decoration: underline; }
+
+  /* PROMPT */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* PART DIVIDER */
+  .part-div { border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: .875rem 1.5rem; display: flex; align-items: center; gap: .75rem; margin-top: 1.5rem; margin-bottom: 0; }
+  .part-div.nb { background: var(--nb-bg); border: 1px solid #C7D7FC; border-bottom: none; }
+  .part-div.ai-lb { background: var(--ai-bg); border: 1px solid #A7F3D0; border-bottom: none; }
+  .part-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .part-dot.nb { background: var(--nb); }
+  .part-dot.ai { background: var(--ai); }
+  .part-title { font-size: .875rem; font-weight: 700; }
+  .part-title.nb { color: var(--nb); }
+  .part-title.ai-c { color: var(--ai); }
+  .part-sub { font-size: .78rem; color: var(--ink-3); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai-b { background: var(--accent); color: #fff; }
+  .badge.plus-b { background: var(--success); color: #fff; }
+  .badge.star-b { background: var(--new); color: #fff; }
+  .badge.warn-b { background: var(--warn); color: #fff; }
+  .badge.key { background: #DC2626; color: #fff; }
+
+  .reflection-list { list-style: none; }
+  .reflection-list li { display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .ref-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  /* FLIPPED DIAGRAM */
+  .flipped-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: .75rem; align-items: center; margin-top: .75rem; }
+  .flipped-card { border-radius: var(--radius); padding: 1rem; text-align: center; }
+  .flipped-card.home { background: var(--nb-bg); border: 1px solid #C7D7FC; }
+  .flipped-card.class { background: var(--ai-bg); border: 1px solid #A7F3D0; }
+  .flipped-card h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .35rem; }
+  .flipped-card.home h4 { color: var(--nb); }
+  .flipped-card.class h4 { color: var(--ai); }
+  .flipped-card p { font-size: .8rem; color: var(--ink-2); line-height: 1.5; }
+  .arrow-box { font-size: 1.5rem; color: var(--ink-3); text-align: center; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .flipped-grid { grid-template-columns: 1fr; }
+    .arrow-box { transform: rotate(90deg); }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+
+  :root { --pu: #7C3AED; --pu-bg: #F5F3FF; }
+  .part-div.pu { background: var(--pu-bg); border: 1px solid #DDD6FE; border-bottom: none; }
+  .part-dot.pu { background: var(--pu); }
+  .part-title.pu { color: var(--pu); }
+  .section-icon.pu { background: var(--pu-bg); }
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .tool-card { border-radius: var(--radius); padding: .875rem 1rem; border: 1px solid var(--border); }
+  .tool-card h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+  .tool-card p { font-size: .82rem; color: var(--ink-2); line-height: 1.5; }
+  .tool-card.c-nb { background: var(--nb-bg); border-color: #C7D7FC; } .tool-card.c-nb h4 { color: var(--nb); }
+  .tool-card.c-pu { background: var(--pu-bg); border-color: #DDD6FE; } .tool-card.c-pu h4 { color: var(--pu); }
+  .tool-card.c-ai { background: var(--ai-bg); border-color: #A7F3D0; } .tool-card.c-ai h4 { color: var(--ai); }
+  .num-pill { background: var(--accent-dim); color: var(--accent); font-weight: 700; font-size: .75rem; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  @media (max-width: 720px) { .tool-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">Лабораторна робота № 6</div>
+    <h1>Формувальне оцінювання<br>і гейміфікація</h1>
+    <p class="header-sub">Адаптована версія · Фізика, математика, інформатика · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~4 години (2 аудиторно + 2 самостійно)</span>
+      <span class="meta-chip">🛠 EdPuzzle · Kahoot · Mentimeter · LearningApps · Wordwall</span>
+      <span class="meta-chip">🔗 Відео з ЛР №5, тема з ЛР №1</span>
+    </div>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span style="font-size:.75rem; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;">Позначки:</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--accent);"></span> Базовий — обов'язково</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--success);"></span> <strong style="color:var(--success)">+</strong> Розширення</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--new);"></span> <strong style="color:var(--new)">★</strong> Творче</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li style="padding:.4rem 0 .2rem .5rem; font-size:10px; font-weight:700; color:var(--nb); letter-spacing:.05em; text-transform:uppercase;">Частина А · Відео</li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · EdPuzzle</a></li>
+      <li style="padding:.4rem 0 .2rem .5rem; font-size:10px; font-weight:700; color:var(--pu); letter-spacing:.05em; text-transform:uppercase;">Частина Б · Гра і рефлексія</li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · Kahoot</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · Mentimeter</a></li>
+      <li style="padding:.4rem 0 .2rem .5rem; font-size:10px; font-weight:700; color:var(--ai); letter-spacing:.05em; text-transform:uppercase;">Частина В · Тренажери</li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Тренажер</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Classroom</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0. ПРО РОБОТУ -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Миттєвий зворотний зв'язок: різні інструменти для різних моментів уроку</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Ви навчитеся автоматизувати формувальне оцінювання з фізики, математики та інформатики: перетворити відео на тренажер із розрахунковими питаннями, провести швидку гру, зібрати рефлексію класу та дати учням домашній тренажер. Головне завдання — розмежувати сфери використання інструментів.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card c-nb">
+          <h4>EdPuzzle</h4>
+          <p>Відео з питаннями. Вчитель бачить, хто і що опрацював</p>
+        </div>
+        <div class="tool-card c-pu">
+          <h4>Kahoot</h4>
+          <p>Енергія, змагання, перевірка фактів. Розминка або фінал уроку</p>
+        </div>
+        <div class="tool-card c-pu">
+          <h4>Mentimeter</h4>
+          <p>Спокій, аналіз, думка. Рефлексія та анонімні відповіді</p>
+        </div>
+        <div class="tool-card c-ai">
+          <h4>LearningApps · Wordwall</h4>
+          <p>Тренажери для закріплення вдома. Це тренування, а не оцінювання</p>
+        </div>
+      </div>
+
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">🔗</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Наскрізний зв'язок із попередніми роботами</p>
+          <p>Відеоогляд із Gemini Notebook (ЛР №5) стає основою для EdPuzzle. Флешкартки з Gemini Notebook можна використати як готові пари для тренажера. Підхід до ручної перевірки числових відповідей ШІ перенесено з ЛР №2. Усі інструменти збираються в один блок у Google Classroom з ЛР №1.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. СЦЕНАРІЙ -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Тема вашого курсу вже опрацьована: є джерело, матеріали Gemini Notebook, Classroom. Але сучасні учні погано реагують на звичайні тести, особливо наприкінці чверті. Вам потрібно:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:.5rem;">
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">1</span><span><strong>Перетворити відео на активний тренажер</strong> із розрахунковими питаннями, який не можна просто «перемотати».</span></li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">2</span><span><strong>Розбудити клас</strong> швидким змаганням і <strong>почути кожного</strong> через анонімну рефлексію.</span></li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">3</span><span><strong>Закріпити матеріал</strong> домашнім тренажером «з'єднай пари».</span></li>
+      </ul>
+    </section>
+
+    <!-- 2. PRE-LAB -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися на <a href="https://edpuzzle.com" target="_blank" style="color:var(--accent)">EdPuzzle</a> з роллю <strong>Teacher</strong></span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися або увійти на <a href="https://kahoot.com" target="_blank" style="color:var(--accent)">Kahoot</a> і <a href="https://www.mentimeter.com" target="_blank" style="color:var(--accent)">Mentimeter</a></span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Зареєструватися на <a href="https://learningapps.org" target="_blank" style="color:var(--accent)">LearningApps</a> і/або <a href="https://wordwall.net" target="_blank" style="color:var(--accent)">Wordwall</a> (потрібен хоча б один)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати MP4 <strong>Відеоогляду з Gemini Notebook</strong> (ЛР №5) або посилання на YouTube-відео за вашою темою</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати телефон для тестування гри та опитування (kahoot.it і QR-код Mentimeter)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до Google Classroom з ЛР №1</span></li>
+      </ul>
+    </section>
+
+    <!-- ЧАСТИНА А -->
+    <div class="part-div nb">
+      <div class="part-dot nb"></div>
+      <div>
+        <p class="part-title nb">Частина А · Відео як тренажер</p>
+        <p class="part-sub">Формувальне оцінювання з контролем вчителя</p>
+      </div>
+    </div>
+
+    <section class="section" id="section-e1" style="border-top:3px solid var(--nb); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-bottom:1.5rem;">
+      <div class="section-header">
+        <div class="section-icon nb">🎬</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">EdPuzzle: відео з розрахунковими питаннями</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Підготуйте відео</p>
+            <ul>
+              <li><strong>Варіант А (рекомендований):</strong> Відеоогляд із Gemini Notebook. Студія → Відеоогляд → три крапки (⋯) → Завантажити (MP4). Якщо ви його ще не створювали, згенеруйте зараз українською мовою.</li>
+              <li><strong>Варіант Б:</strong> посилання на YouTube-відео за вашою темою. EdPuzzle приймає й посилання.</li>
+            </ul>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+              <p>Перегляньте відео перед завантаженням, звертаючи увагу на моменти, де озвучуються формули та числа. Синтез мовлення може спотворити запис. Якщо знайшли спотворення, зафіксуйте його для звіту.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Завантажте відео в EdPuzzle</p>
+            <p>Увійдіть як Teacher → <strong>+ Add Content</strong> → <strong>Upload video</strong> (або вставте посилання на YouTube).</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.3</span>
+          <div class="step-body">
+            <p class="step-title">Додайте три типи взаємодії <span class="badge key">ОСНОВНЕ ЗАВДАННЯ</span></p>
+            <p>Вкладка <strong>Questions</strong>. Зупиняйте відео на ключових моментах і додайте:</p>
+            <ul>
+              <li><strong>Multiple Choice:</strong> розрахункове питання із застосуванням формули з відео, 3–4 числові варіанти, один правильний</li>
+              <li><strong>Open-Ended:</strong> «Поясніть фізичний, математичний або алгоритмічний зміст цього терміна своїми словами»</li>
+              <li><strong>Note:</strong> ваша примітка, наприклад «Зверніть увагу на цю формулу!»</li>
+            </ul>
+            <div class="prompt-block" style="margin-top:.5rem;">
+              <p class="prompt-label">Приклади розрахункових питань</p>
+              <p class="prompt-text"><em>Фізика:</em> «Чому дорівнює швидкість тіла через 3 с?»
+<em>Математика:</em> «Чому дорівнює значення похідної функції в точці x = 2?»
+<em>Інформатика:</em> «Скільки ітерацій виконає цей цикл?»</p>
+            </div>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПЕДАГОГІЧНА ЛОГІКА</span>
+              <p>Розрахункове питання замість тестового: учень має підставити дані у формулу з відео, а не вгадати факт. Дистрактори мають бути типовими помилками (знак, одиниці виміру, порядок дій).</p>
+            </div>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Зупиніть відео перед ключовим кроком виведення формули та додайте Open-Ended питання «Що, на вашу думку, буде наступним кроком?». Учень спочатку прогнозує, потім перевіряє себе відео.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.4</span>
+          <div class="step-body">
+            <p class="step-title">Захист від перемотування</p>
+            <p>Натисніть <strong>Finish</strong> → <strong>Assign</strong>. У налаштуваннях активуйте <strong>Prevent Skipping</strong>: учень не зможе пропустити виведення формули чи розрахунок.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Використовуйте обережно. Для відео довше 7–10 хвилин ця функція може демотивувати. Краще розбити довге відео на серію коротких.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЧАСТИНА Б -->
+    <div class="part-div pu">
+      <div class="part-dot pu"></div>
+      <div>
+        <p class="part-title pu">Частина Б · Гра і рефлексія</p>
+        <p class="part-sub">Енергія на початку, спокій наприкінці</p>
+      </div>
+    </div>
+
+    <section class="section" id="section-e2" style="border-top:3px solid var(--pu); border-radius:0; margin-bottom:0;">
+      <div class="section-header">
+        <div class="section-icon pu">⚡</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Kahoot: гейміфікована вікторина</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">2.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть квіз за допомогою AI</p>
+            <p>Увійдіть у Kahoot → <strong>Create</strong> → <strong>Kahoot</strong> → знайдіть <strong>Question Generator</strong> («Generate with AI»). Введіть тему вашого курсу.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Якщо ця функція обмежена в безкоштовній версії, скористайтеся Gemini в сусідній вкладці й скопіюйте питання:</p>
+            </div>
+            <div class="prompt-block" style="margin-top:.4rem;">
+              <p class="prompt-label">Промпт для Gemini</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Створи 5 питань для Kahoot на тему <em>[ваша тема]</em>
+з 4 варіантами відповідей, де 1 правильна,
+включаючи хоча б 2 розрахункові питання з формулою.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.2</span>
+          <div class="step-body">
+            <p class="step-title">Перевірте і відредагуйте <span class="badge key">ОБОВ'ЯЗКОВО</span></p>
+            <ul>
+              <li>Перевірте фактичну коректність і відповідність вашому курсу</li>
+              <li><strong>Перерахуйте вручну щонайменше одну числову відповідь.</strong> ШІ регулярно помиляється саме в обчисленнях, включно з дистракторами</li>
+              <li>Для розрахункових питань змініть час із 20 на 30 секунд</li>
+              <li>Додайте яскраву обкладинку (Cover image) з бібліотеки</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПАСТКА ТАЙМІНГУ</span>
+              <p>Не ставте менше 20–30 секунд на розрахункове питання. Учням потрібен час не лише прочитати варіанти, а й виконати обчислення та знайти потрібний колір у телефоні.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">2.3</span>
+          <div class="step-body">
+            <p class="step-title">Проведіть гру</p>
+            <p>Натисніть <strong>Start</strong> → <strong>Classic Mode</strong>. Одногрупники відкривають на телефонах <strong>kahoot.it</strong>, вводять PIN-код і проходять ваш тест. Зробіть скріншот екрана гравця на телефоні.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Додайте питання із зображенням: схема електричного кола, графік функції або блок-схема алгоритму.</p>
+            </div>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Створіть питання, де один дистрактор відповідає типовій помилці (знак, одиниці виміру, порядок дій). Після гри відкрийте звіт Kahoot і подивіться, скільки учасників обрали цей варіант. У звіті поясніть, яку помилку він моделює.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-e3" style="border-top:3px solid var(--pu); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-top:2px; margin-bottom:1.5rem;">
+      <div class="section-header">
+        <div class="section-icon pu">💭</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Mentimeter: анонімна рефлексія</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Mentimeter ідеальний для збору думок, де немає «правильної» відповіді.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Згенеруйте сесію через AI</p>
+            <p>Увійдіть у Mentimeter → <strong>New presentation</strong> → <strong>Start with AI</strong> (або натисніть клавішу «K» для командного рядка AI).</p>
+            <div class="prompt-block" style="margin-top:.4rem;">
+              <p class="prompt-label">Промпт</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Підготуй сесію для рефлексії студентів
+щодо теми <em>[ваша тема]</em> українською мовою.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Перевірте типи слайдів</p>
+            <p>Обов'язково мають бути:</p>
+            <ul>
+              <li><strong>Word Cloud (хмара слів):</strong> «Які асоціації викликає у вас ця тема?»</li>
+              <li><strong>Scales (шкала):</strong> «Оцініть свою впевненість у самостійному розв'язанні задачі цього типу»</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПРЕДМЕТНА ТОЧНІСТЬ</span>
+              <p>Шкала про конкретну навичку (впевненість у розв'язанні задачі), а не про абстрактне «розуміння теми». Її результат можна зіставити з результатами Kahoot і EdPuzzle. Безкоштовний тариф обмежує кількість слайдів з питаннями, тому зайве видаліть.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.3</span>
+          <div class="step-body">
+            <p class="step-title">Перекладіть і протестуйте</p>
+            <p>Перекладіть заголовки слайдів українською. Натисніть <strong>Present</strong>, зіскануйте QR-код телефоном і надішліть кілька відповідей, щоб побачити, як будується хмара слів у реальному часі.</p>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Опишіть у 2–3 реченнях, як би ви змінили наступний урок залежно від результату шкали: більшість обрала низькі значення, і навпаки.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЧАСТИНА В -->
+    <div class="part-div ai-lb">
+      <div class="part-dot ai"></div>
+      <div>
+        <p class="part-title ai-c">Частина В · Домашній тренажер і Classroom</p>
+        <p class="part-sub">Асинхронне закріплення та збирання всього в один блок</p>
+      </div>
+    </div>
+
+    <section class="section" id="section-e4" style="border-top:3px solid var(--ai); border-radius:0; margin-bottom:0;">
+      <div class="section-header">
+        <div class="section-icon ai">🧩</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Домашній тренажер: LearningApps або Wordwall</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Оберіть <strong>один</strong> сервіс для обов'язкової частини. Другий можна спробувати як розширення.</p>
+
+      <div style="overflow-x:auto;">
+        <table class="tool-table">
+          <thead><tr><th>Сервіс</th><th>Сильна сторона</th><th>На що звернути увагу</th></tr></thead>
+          <tbody>
+            <tr><td class="td-tool">LearningApps</td><td>Прості вправи «знайти пару», «класифікація», безкоштовно, посилання одразу готове</td><td>Простий дизайн, обмежений вибір ігрових форматів</td></tr>
+            <tr><td class="td-tool">Wordwall</td><td>Багато ігрових шаблонів (пари, сортування, вікторина, колесо, лабіринт); одну активність можна перемкнути на інший шаблон; є версія для друку</td><td>Безкоштовний акаунт має обмеження на кількість активностей і функцій, перевірте перед початком</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="steps" style="margin-top:.75rem;">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть вправу у вибраному сервісі</p>
+            <p><strong>LearningApps:</strong> Створити вправу → шаблон «Знайти пару» або «Класифікація».<br>
+            <strong>Wordwall:</strong> Create activity → шаблон Match up, Group sort або Quiz.</p>
+            <p style="margin-top:.4rem;">Створіть пари: <em>формула — назва закону</em>, <em>фізична величина — одиниця виміру</em>, <em>термін — визначення</em> (для інформатики, наприклад, <em>тип даних — приклад значення</em>).</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Готові пари можна взяти з <strong>Флешкарток Gemini Notebook</strong> (ЛР №5). Перевірте їх вручну перед використанням.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Збережіть і скопіюйте посилання</p>
+            <p><strong>LearningApps:</strong> Зберегти вправу → посилання «Для повного екрану» або «Поширити».<br>
+            <strong>Wordwall:</strong> Share → посилання на активність. Для відео чи класу без пристроїв є й версія для друку.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Створіть ту саму вправу в другому сервісі. У Wordwall спробуйте перемкнути шаблон (наприклад, з «пар» на «колесо») без повторного введення змісту. Зафіксуйте, який сервіс і чому підходить вашому предмету краще.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-block" style="margin-top:.75rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+        <p><strong>Це не оцінювання, а тренування.</strong> Оцінку за такі вправи ставити не варто, але можна давати бонус за проходження.</p>
+      </div>
+    </section>
+
+    <section class="section" id="section-e5" style="border-top:3px solid var(--ai); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-top:2px; margin-bottom:1.25rem;">
+      <div class="section-header">
+        <div class="section-icon ai">🔗</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Блок «Підсумок теми» в Classroom і аналітика</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Зберіть інструменти в один блок</p>
+            <p>У вашому Google Classroom створіть тему <strong>«Підсумок теми: [назва]»</strong> і додайте матеріали:</p>
+            <ul>
+              <li>завдання EdPuzzle (посилання або призначення через Classroom)</li>
+              <li>Kahoot (Share link або Guest link)</li>
+              <li>Mentimeter (Voting link)</li>
+              <li>посилання на домашній тренажер</li>
+            </ul>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">В описі для учня вкажіть, <strong>коли і навіщо</strong> використовується кожен інструмент: відео опрацьовують до уроку, Kahoot на уроці, Mentimeter наприкінці, тренажер вдома.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.2</span>
+          <div class="step-body">
+            <p class="step-title">Перегляньте журнал EdPuzzle</p>
+            <p>У режимі Teacher відкрийте свій урок → вкладка <strong>Gradebook</strong>. Подивіться, як виглядає статистика: хто переглянув 100 %, хто 50 %, хто правильно відповів на розрахункове питання.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">5.3</span>
+          <div class="step-body">
+            <p class="step-title">Спроба «обману»</p>
+            <p>Запустіть відео в режимі <strong>Preview</strong> і спробуйте перетягнути повзунок уперед. Переконайтеся, що Prevent Skipping блокує цю дію. Зробіть скріншот.</p>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Після гри Kahoot відкрийте звіт і знайдіть питання з найнижчою часткою правильних відповідей. У 2–3 реченнях оцініть: це складна тема чи проблемне формулювання питання?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>MP4-файл або посилання на відео для EdPuzzle</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на урок в EdPuzzle (перевірте доступ) і скріншот Prevent Skipping</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на Kahoot (Guest link або Share link) і примітка: яку числову відповідь ви перевірили вручну і що виявилося</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на презентацію Mentimeter (Voting link)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Посилання на вправу в LearningApps або Wordwall</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот з телефона, що підтверджує тестування одного із сервісів (інтерфейс гравця)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот блоку «Підсумок теми» у Google Classroom з описом для учня</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Другий тренажер (інший сервіс) і висновок про порівняння</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Висновок за звітом Kahoot (питання з найнижчою часткою правильних відповідей)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Питання Kahoot із дистрактором-типовою помилкою та пояснення</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Опис змін наступного уроку за результатом шкали Mentimeter</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <ol class="reflection-list">
+        <li><span class="ref-num">1</span><span>Чому потрібні різні інструменти для формувального оцінювання (EdPuzzle), ігрового (Kahoot) і рефлексії (Mentimeter)? На якому етапі уроку ви б використали кожен?</span></li>
+        <li><span class="ref-num">2</span><span>Чи може відео, згенероване в Gemini Notebook, замінити традиційне пояснення для сучасних учнів, чи має бути лише доповненням? Що додає EdPuzzle до самого відео?</span></li>
+        <li><span class="ref-num">3</span><span>Наскільки надійно ШІ генерує числові варіанти відповідей для розрахункових питань? Скільки помилок ви знайшли при ручній перевірці і як це порівнюється з досвідом ЛР №2?</span></li>
+        <li><span class="ref-num">4</span><span>Тренажер у LearningApps або Wordwall: це оцінювання чи тренування? Чи варто ставити за нього оцінку, чи краще давати бонус за проходження?</span></li>
+        <li><span class="ref-num">5</span><span>Яку послідовність (розминка → відео → рефлексія чи іншу) ви обрали б для реального уроку за вашою темою і чому?</span></li>
+        <li><span class="ref-num">6</span><span>Чим гейміфікація допомагає навчанню, а коли відволікає від нього? Де межа?</span></li>
+      </ol>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li><span class="res-icon">🎬</span><div><a href="https://edpuzzle.com" target="_blank">EdPuzzle</a><div style="font-size:.8rem; color:var(--ink-3);">Відео з питаннями, Prevent Skipping, Gradebook</div></div></li>
+        <li><span class="res-icon">⚡</span><div><a href="https://kahoot.com" target="_blank">Kahoot</a><div style="font-size:.8rem; color:var(--ink-3);">Гейміфіковані вікторини; гравці підключаються через kahoot.it</div></div></li>
+        <li><span class="res-icon">💭</span><div><a href="https://www.mentimeter.com" target="_blank">Mentimeter</a><div style="font-size:.8rem; color:var(--ink-3);">Хмара слів, шкали, анонімні відповіді в реальному часі</div></div></li>
+        <li><span class="res-icon">🧩</span><div><a href="https://learningapps.org" target="_blank">LearningApps</a> · <a href="https://wordwall.net" target="_blank">Wordwall</a><div style="font-size:.8rem; color:var(--ink-3);">Домашні тренажери: пари, класифікація, сортування, колесо</div></div></li>
+        <li><span class="res-icon">📓</span><div><a href="https://notebooklm.google.com" target="_blank">Gemini Notebook</a><div style="font-size:.8rem; color:var(--ink-3);">Відеоогляд і Флешкартки з ЛР №5</div></div></li>
+        <li><span class="res-icon">🧮</span><div><a href="https://www.wolframalpha.com" target="_blank">Wolfram Alpha</a><div style="font-size:.8rem; color:var(--ink-3);">Перевірка числових відповідей у квізах і питаннях EdPuzzle</div></div></li>
+      </ul>
+      <div class="tip-block" style="margin-top:1rem;">
+        <span class="tip-icon">💡</span>
+        <p><strong>Коли що використовувати.</strong> Kahoot: енергія, змагання, перевірка фактів (розминка або фінал). Mentimeter: спокій, аналіз, думка (середина уроку або рефлексія). EdPuzzle: контроль вчителя над відео та журнал результатів. LearningApps і Wordwall: тренування вдома.</p>
+      </div>
+      <div class="warn-block" style="margin-top:.75rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">💡</span>
+        <p><strong>Ліміти безкоштовних тарифів.</strong> Умови Kahoot, Mentimeter, EdPuzzle і Wordwall змінюються: частина AI-функцій і кількість активностей можуть бути обмежені. Перевіряйте перед початком роботи.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+  function toggleCheck(li) { li.classList.toggle('done'); }
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => btn.textContent = 'Копіювати', 2000);
+    });
+  }
+</script>
+</body>
+</html>
