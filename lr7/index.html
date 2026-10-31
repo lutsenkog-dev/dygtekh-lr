@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЛР №7 · Адаптивне тестування в Google Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1A2038; --ink-2: #3D4C6B; --ink-3: #6B7A99;
+    --surface: #F5F7FC; --card: #FFFFFF;
+    --accent: #4F8EF7; --accent-dim: #EBF2FF; --accent-dark: #1A5FCC;
+    --new: #F59E0B; --new-bg: #FFFBEB; --new-border: #FCD34D;
+    --success: #10B981; --success-bg: #ECFDF5;
+    --warn: #8B5CF6; --warn-bg: #F5F3FF;
+    --border: #E2E8F0; --border-strong: #CBD5E1;
+    --plus-bg: #F0FDF4; --plus-border: #86EFAC; --plus-text: #166534;
+    --star-bg: #FFF7ED; --star-border: #FED7AA; --star-text: #9A3412;
+    --nb: #4285F4; --nb-bg: #EBF2FF;
+    --ai: #00BF6F; --ai-bg: #ECFDF5;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(26,32,56,.07), 0 4px 12px rgba(26,32,56,.05);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.7; }
+  #progress-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 3px; background: linear-gradient(90deg, var(--nb), var(--ai)); width: 0%; transition: width .2s ease; }
+
+  .page-header { background: var(--ink); color: #fff; padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .page-header::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(66,133,244,.25) 0%, transparent 65%); pointer-events: none; }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,142,247,.18); color: #93C5FD; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; }
+  .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+  .header-sub { color: #94A3B8; font-size: 13.5px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .meta-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: #CBD5E1; }
+
+  .legend-bar { background: var(--card); border-bottom: 1px solid var(--border); }
+  .legend-inner { max-width: 980px; margin: 0 auto; padding: .75rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
+  .ld { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .layout { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; padding: 1.5rem 1.5rem 4rem; align-items: start; }
+  .sidebar { position: sticky; top: 1.5rem; }
+  .nav-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .6rem; padding-left: 2px; }
+  .nav-list { list-style: none; }
+  .nav-list li + li { margin-top: 2px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: background .15s, color .15s; cursor: pointer; }
+  .nav-link:hover { background: var(--accent-dim); color: var(--accent-dark); }
+  .nav-link.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .nav-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-link.active .nav-num { background: var(--accent); color: #fff; }
+  .main { min-width: 0; }
+
+  .section { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+  .section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .section-icon.blue { background: var(--accent-dim); }
+  .section-icon.green { background: var(--success-bg); }
+  .section-icon.purple { background: var(--warn-bg); }
+  .section-icon.yellow { background: var(--new-bg); }
+  .section-icon.nb { background: var(--nb-bg); }
+  .section-icon.ai { background: var(--ai-bg); }
+  .section-title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .section-num { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+  .steps { display: flex; flex-direction: column; gap: .75rem; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-marker { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: .875rem; margin-bottom: 3px; color: var(--ink); }
+  .step-body p, .step-body li { font-size: .875rem; color: var(--ink-2); line-height: 1.65; }
+  .step-body ul { list-style: none; margin-top: .4rem; }
+  .step-body ul li { padding-left: 1.1em; position: relative; }
+  .step-body ul li::before { content: '–'; position: absolute; left: 0; color: var(--ink-3); }
+
+  .level-block { border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .level-block.plus { background: var(--plus-bg); border: 1px solid var(--plus-border); }
+  .level-block.star { background: var(--star-bg); border: 1px solid var(--star-border); }
+  .level-block.plus p { font-size: .84rem; color: var(--plus-text); line-height: 1.6; }
+  .level-block.star p { font-size: .84rem; color: var(--star-text); line-height: 1.6; }
+  .level-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+  .level-badge.plus { background: var(--success); color: #fff; }
+  .level-badge.star { background: var(--new); color: #fff; }
+
+  .new-block { background: var(--new-bg); border: 1px solid var(--new-border); border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .new-badge { background: var(--new); color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .new-block p { font-size: .84rem; color: #78350F; line-height: 1.6; }
+
+  .ai-block { background: linear-gradient(135deg, #EBF2FF 0%, #F0EBFF 100%); border: 1px solid #C7D7FC; border-radius: var(--radius); padding: .875rem 1rem; margin-top: .6rem; display: flex; gap: .75rem; align-items: flex-start; }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+  .ai-block-inner { flex: 1; }
+  .ai-block-title { font-size: .78rem; font-weight: 600; color: var(--accent-dark); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+  .ai-block p { font-size: .85rem; color: #1E3A6E; line-height: 1.6; }
+  .ai-block code { font-family: 'JetBrains Mono', monospace; background: rgba(79,142,247,.12); color: var(--accent-dark); padding: 1px 5px; border-radius: 4px; font-size: .82em; }
+
+  .tip-block { background: var(--success-bg); border: 1px solid #A7F3D0; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .tip-block p { font-size: .84rem; color: #065F46; line-height: 1.6; }
+  .tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .warn-block { background: var(--warn-bg); border: 1px solid #DDD6FE; border-radius: var(--radius); padding: .75rem 1rem; margin-top: .6rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .warn-block p { font-size: .84rem; color: #4C1D95; line-height: 1.6; }
+
+  /* TOOL TABLE */
+  .tool-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: .75rem; }
+  .tool-table thead th { background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; padding: .6rem .875rem; text-align: left; border-bottom: 2px solid var(--border); }
+  .tool-table tbody td { padding: .6rem .875rem; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: top; line-height: 1.5; }
+  .tool-table tbody tr:last-child td { border-bottom: none; }
+  .tool-table tbody tr:hover td { background: var(--surface); }
+  .td-tool { font-weight: 600; color: var(--ink); }
+  .td-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .td-link a:hover { text-decoration: underline; }
+
+  /* PROMPT */
+  .prompt-block { background: #0F172A; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: .6rem; position: relative; }
+  .prompt-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; margin-bottom: .5rem; }
+  .prompt-text { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #93C5FD; line-height: 1.7; white-space: pre-wrap; }
+  .prompt-text em { color: #FCD34D; font-style: normal; }
+  .copy-btn { position: absolute; top: .75rem; right: .75rem; background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.3); color: #93C5FD; border-radius: 6px; padding: 3px 8px; font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: rgba(79,142,247,.3); }
+
+  /* PART DIVIDER */
+  .part-div { border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: .875rem 1.5rem; display: flex; align-items: center; gap: .75rem; margin-top: 1.5rem; margin-bottom: 0; }
+  .part-div.nb { background: var(--nb-bg); border: 1px solid #C7D7FC; border-bottom: none; }
+  .part-div.ai-lb { background: var(--ai-bg); border: 1px solid #A7F3D0; border-bottom: none; }
+  .part-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .part-dot.nb { background: var(--nb); }
+  .part-dot.ai { background: var(--ai); }
+  .part-title { font-size: .875rem; font-weight: 700; }
+  .part-title.nb { color: var(--nb); }
+  .part-title.ai-c { color: var(--ai); }
+  .part-sub { font-size: .78rem; color: var(--ink-3); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin-top: .5rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); cursor: pointer; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: var(--success); border-color: var(--success); }
+  .checklist li.done .check-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .checklist li.done span { text-decoration: line-through; color: var(--ink-3); }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .badge.ai-b { background: var(--accent); color: #fff; }
+  .badge.plus-b { background: var(--success); color: #fff; }
+  .badge.star-b { background: var(--new); color: #fff; }
+  .badge.warn-b { background: var(--warn); color: #fff; }
+  .badge.key { background: #DC2626; color: #fff; }
+
+  .reflection-list { list-style: none; }
+  .reflection-list li { display: flex; gap: .75rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--ink-2); }
+  .reflection-list li:last-child { border-bottom: none; }
+  .ref-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-3); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .resource-list { list-style: none; margin-top: .5rem; }
+  .resource-list li { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+  .resource-list li:last-child { border-bottom: none; }
+  .resource-list a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .resource-list a:hover { text-decoration: underline; }
+  .res-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+
+  /* FLIPPED DIAGRAM */
+  .flipped-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: .75rem; align-items: center; margin-top: .75rem; }
+  .flipped-card { border-radius: var(--radius); padding: 1rem; text-align: center; }
+  .flipped-card.home { background: var(--nb-bg); border: 1px solid #C7D7FC; }
+  .flipped-card.class { background: var(--ai-bg); border: 1px solid #A7F3D0; }
+  .flipped-card h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .35rem; }
+  .flipped-card.home h4 { color: var(--nb); }
+  .flipped-card.class h4 { color: var(--ai); }
+  .flipped-card p { font-size: .8rem; color: var(--ink-2); line-height: 1.5; }
+  .arrow-box { font-size: 1.5rem; color: var(--ink-3); text-align: center; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .flipped-grid { grid-template-columns: 1fr; }
+    .arrow-box { transform: rotate(90deg); }
+    .page-header { padding: 1.75rem 1.25rem 1.5rem; }
+    .section { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, html { scroll-behavior: auto !important; transition: none !important; } }
+
+  .badge.ai-b { background: var(--accent); color: #fff; }
+  .num-pill { background: var(--accent-dim); color: var(--accent); font-weight: 700; font-size: .75rem; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .route { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+  .route-box { border-radius: 8px; padding: .5rem .75rem; font-size: .8rem; line-height: 1.35; display: flex; flex-direction: column; border: 1px solid var(--border); background: #fff; }
+  .route-box span { font-size: .72rem; color: var(--ink-3); }
+  .route-box.rb-a { background: #F1F5F9; } .route-box.rb-b { background: var(--accent-dim); border-color: #C7D7FC; }
+  .route-box.rb-c { background: var(--new-bg); border-color: var(--new-border); } .route-box.rb-d { background: var(--success-bg); border-color: #A7F3D0; }
+  .route-arrow { color: var(--ink-3); font-size: 1.1rem; }
+  .route-split { display: flex; flex-direction: column; gap: .5rem; }
+  .route-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+  .route-ok { color: var(--plus-text); font-size: .75rem; font-weight: 700; min-width: 5.5rem; }
+  .route-err { color: var(--star-text); font-size: .75rem; font-weight: 700; min-width: 5.5rem; }
+  .subj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .6rem; }
+  .subj-card { border: 1px solid var(--border); border-radius: var(--radius); padding: .65rem .75rem; background: #fff; }
+  .subj-card h5 { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin-bottom: .25rem; }
+  .subj-card p { font-size: .78rem !important; color: var(--ink-2); line-height: 1.5 !important; }
+  .faq { display: flex; flex-direction: column; gap: .6rem; }
+  .faq-item { border: 1px solid var(--border); border-left: 3px solid var(--new); border-radius: var(--radius); padding: .75rem 1rem; }
+  .faq-q { font-size: .85rem; font-weight: 600; color: var(--ink); margin-bottom: .25rem; }
+  .faq-a { font-size: .84rem; color: var(--ink-2); line-height: 1.6; }
+  @media (max-width: 720px) { .subj-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-tag">Лабораторна робота № 7</div>
+    <h1>Адаптивне тестування<br>в Google Forms</h1>
+    <p class="header-sub">Адаптована версія · Фізика, математика, інформатика · Цифрові технології в освітньому процесі</p>
+    <div class="header-meta">
+      <span class="meta-chip">⏱ ~4 години (2 аудиторно + 2 самостійно)</span>
+      <span class="meta-chip">🛠 Google Forms · Google Таблиці · Classroom · Gemini</span>
+      <span class="meta-chip">🔗 Тема з ЛР №1 · підсумкова робота курсу</span>
+    </div>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span style="font-size:.75rem; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;">Позначки:</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--accent);"></span> Базовий — обов'язково</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--success);"></span> <strong style="color:var(--success)">+</strong> Розширення</span>
+    <span style="display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--ink-2);"><span class="ld" style="background:var(--new);"></span> <strong style="color:var(--new)">★</strong> Творче</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <p class="nav-label">Розділи</p>
+    <ul class="nav-list">
+      <li><a class="nav-link active" href="#section-meta" onclick="setActive(this)"><span class="nav-num">0</span> Про роботу</a></li>
+      <li><a class="nav-link" href="#section-scenario" onclick="setActive(this)"><span class="nav-num">1</span> Сценарій</a></li>
+      <li><a class="nav-link" href="#section-prelab" onclick="setActive(this)"><span class="nav-num">2</span> Pre-lab</a></li>
+      <li><a class="nav-link" href="#section-e1" onclick="setActive(this)"><span class="nav-num">3</span> Етап 1 · Classroom</a></li>
+      <li><a class="nav-link" href="#section-e2" onclick="setActive(this)"><span class="nav-num">4</span> Етап 2 · Розділи</a></li>
+      <li><a class="nav-link" href="#section-e3" onclick="setActive(this)"><span class="nav-num">5</span> Етап 3 · Адаптивність</a></li>
+      <li><a class="nav-link" href="#section-e4" onclick="setActive(this)"><span class="nav-num">6</span> Етап 4 · Типи питань</a></li>
+      <li><a class="nav-link" href="#section-e5" onclick="setActive(this)"><span class="nav-num">7</span> Етап 5 · Фідбек</a></li>
+      <li><a class="nav-link" href="#section-e6" onclick="setActive(this)"><span class="nav-num">8</span> Етап 6 · Тестування</a></li>
+      <li><a class="nav-link" href="#section-e7" onclick="setActive(this)"><span class="nav-num">9</span> Етап 7 · Аналітика</a></li>
+      <li><a class="nav-link" href="#section-report" onclick="setActive(this)"><span class="nav-num">✓</span> Звітність</a></li>
+      <li><a class="nav-link" href="#section-reflect" onclick="setActive(this)"><span class="nav-num">?</span> Рефлексія</a></li>
+      <li><a class="nav-link" href="#section-faq" onclick="setActive(this)"><span class="nav-num">!</span> Типові проблеми</a></li>
+      <li><a class="nav-link" href="#section-resources" onclick="setActive(this)"><span class="nav-num">🔗</span> Ресурси</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0 -->
+    <section class="section" id="section-meta">
+      <div class="section-header">
+        <div class="section-icon blue">🎯</div>
+        <div>
+          <p class="section-num">Мета роботи</p>
+          <h2 class="section-title">Тест, який адаптується до учня</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:1rem;">Це підсумкова лабораторна робота курсу. Ви створите багаторівневий тест у Google Forms, який сам змінює маршрут учня залежно від відповіді. Додатково опануєте складні типи питань (сітки, шкали, завантаження файлів), налаштуєте імпорт оцінок у Google Classroom, а наприкінці проаналізуєте результати тесту засобами Learning Analytics і сформулюєте рішення для вчителя.</p>
+
+      <div class="route">
+        <div class="route-box rb-a"><strong>Реєстрація</strong><span>Розділ 1</span></div>
+        <div class="route-arrow">→</div>
+        <div class="route-box rb-b"><strong>Діагностика</strong><span>Розділ 2 · питання-фільтр</span></div>
+        <div class="route-split">
+          <div class="route-row"><span class="route-ok">✓ правильно</span><span class="route-arrow">→</span><div class="route-box rb-d"><strong>Поглиблений рівень</strong><span>Розділ 4</span></div></div>
+          <div class="route-row"><span class="route-err">✗ помилка</span><span class="route-arrow">→</span><div class="route-box rb-c"><strong>Корекція знань</strong><span>Розділ 3</span></div><span class="route-arrow">→</span><div class="route-box rb-d"><strong>Поглиблений рівень</strong><span>Розділ 4</span></div></div>
+        </div>
+      </div>
+
+      <div class="ai-block" style="margin-top:1rem;">
+        <div class="ai-icon">🔗</div>
+        <div class="ai-block-inner">
+          <p class="ai-block-title">Наскрізний зв'язок із курсом</p>
+          <p>Тема тесту — з ЛР №1. Матеріали для розділу корекції можна взяти з попередніх робіт: інфографіку з ЛР №3, ментальну карту з Gemini Notebook (ЛР №5), відео з ЛР №6. Тест публікується в Google Classroom з ЛР №1, а ключ до розрахункових питань перевіряється так само ретельно, як у ЛР №2.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 -->
+    <section class="section" id="section-scenario">
+      <div class="section-header">
+        <div class="section-icon yellow">📌</div>
+        <div>
+          <p class="section-num">Розділ 1</p>
+          <h2 class="section-title">Сценарій</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Ви продовжуєте роботу над своїм курсом. Учні опрацювали матеріал, і тепер потрібно перевірити глибину розуміння. Звичайний тест «вгадайка» для цього не підходить. Вам потрібен інструмент, який:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:.5rem;">
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">1</span><span><strong>Адаптується.</strong> Якщо учень помиляється в базовому питанні (плутає формулу, правило чи принцип роботи алгоритму), тест відправляє його на повторення, а не пускає далі.</span></li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">2</span><span><strong>Перевіряє навички.</strong> Сітки для співставлення і завантаження файлів із розв'язанням задачі або кодом.</span></li>
+        <li style="display:flex; gap:.75rem; align-items:flex-start; font-size:.875rem; color:var(--ink-2);"><span class="num-pill">3</span><span><strong>Навчає.</strong> Дає миттєвий коментар до кожної помилки.</span></li>
+      </ul>
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">ЧОМУ ЦЕ ВАЖЛИВО ДЛЯ ВАШИХ ПРЕДМЕТІВ</span>
+        <p>У фізиці, математиці та інформатиці помилка в базовій формулі, правилі чи конструкції унеможливлює розв'язання всіх наступних задач теми. Тому діагностичне питання на початку і гілка корекції тут особливо виправдані.</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="section" id="section-prelab">
+      <div class="section-header">
+        <div class="section-icon purple">📋</div>
+        <div>
+          <p class="section-num">Розділ 2</p>
+          <h2 class="section-title">Підготовка до роботи (Pre-lab)</h2>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Відкрити Gemini для допомоги у формулюванні питань і фідбеку</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Підготувати <strong>матеріал для корекції</strong>: посилання на коротке YouTube-відео або зображення зі схемою виведення формули чи правила (інфографіка з ЛР №3, ментальна карта з ЛР №5, відео з ЛР №6)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Визначити <strong>типову помилку</strong> учнів за вашою темою: саме її ловитиме діагностичне питання</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до Google Classroom з ЛР №1 і домовитися про взаємне тестування в групі (Етап 6). Для аналітики в Етапі 7 потрібно <strong>щонайменше 5 проходжень</strong> вашого тесту</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мати доступ до Google Таблиць (для Етапу 7)</span></li>
+      </ul>
+      <div class="tip-block" style="margin-top:.75rem;">
+        <span class="tip-icon">💡</span>
+        <p>Приклади типових помилок. <strong>Фізика:</strong> плутанина одиниць виміру, неправильна формула закону. <strong>Математика:</strong> забутий коефіцієнт чи показник степеня при диференціюванні, помилка в знаку. <strong>Інформатика:</strong> плутанина = і ==, цілочисельне ділення, помилка на одиницю в межах циклу.</p>
+      </div>
+    </section>
+
+    <!-- E1 -->
+    <section class="section" id="section-e1">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Етап 1</p>
+          <h2 class="section-title">Інтеграція з Classroom і базові налаштування</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Починаємо з Classroom, щоб оцінки потім автоматично підтягнулися в журнал.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">1.1</span>
+          <div class="step-body">
+            <p class="step-title">Створіть завдання з тестом</p>
+            <p>У вашому курсі: вкладка «Завдання» → <strong>Створити</strong> → <strong>«Завдання з тестом»</strong> (Quiz assignment). Google автоматично створить файл Blank Quiz. Відкрийте його.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">1.2</span>
+          <div class="step-body">
+            <p class="step-title">Налаштуйте форму</p>
+            <ul>
+              <li>Змініть назву файлу (зліва вгорі) на «Підсумковий тест: [ваша тема]»</li>
+              <li>Вкладка <strong>Налаштування</strong> → увімкніть <strong>«Оцінювати як тест»</strong></li>
+              <li>У розділі «Відповіді»: Оцінки → <strong>Імпорт оцінок</strong> (має бути активним)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- E2 -->
+    <section class="section" id="section-e2">
+      <div class="section-header">
+        <div class="section-icon blue">🗂️</div>
+        <div>
+          <p class="section-num">Етап 2</p>
+          <h2 class="section-title">Архітектура тесту: робота з розділами</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Адаптивність технічно неможлива без розділення тесту на окремі сторінки (Sections). Додайте розділи кнопкою «Додати розділ» (дві горизонтальні смужки в плаваючому меню праворуч) і створіть чотири:</p>
+      <div style="overflow-x:auto;">
+        <table class="tool-table">
+          <thead><tr><th>№</th><th>Назва розділу</th><th>Що в ньому</th></tr></thead>
+          <tbody>
+            <tr><td class="td-tool">1</td><td>Реєстрація</td><td>Питання «ПІБ учня», тип «Коротка відповідь»</td></tr>
+            <tr><td class="td-tool">2</td><td>Діагностика</td><td>Базове питання-фільтр</td></tr>
+            <tr><td class="td-tool">3</td><td>Корекція знань</td><td>Для тих, хто помилився</td></tr>
+            <tr><td class="td-tool">4</td><td>Поглиблений рівень</td><td>Основний блок питань</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- E3 -->
+    <section class="section" id="section-e3">
+      <div class="section-header">
+        <div class="section-icon blue">🔀</div>
+        <div>
+          <p class="section-num">Етап 3</p>
+          <h2 class="section-title">Реалізація адаптивності (Branching) <span class="badge key">КЛЮЧОВИЙ ЕТАП</span></h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Сценарій: помилка → повторення → повернення до основного маршруту.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">3.1</span>
+          <div class="step-body">
+            <p class="step-title">Діагностичне питання (Розділ 2)</p>
+            <p>Створіть питання типу <strong>«З однією правильною відповіддю»</strong>. Воно має перевіряти саме базове <strong>застосування</strong> формули, правила чи конструкції, а не знання факту. Серед хибних варіантів мають бути типові помилки.</p>
+            <div class="subj-grid">
+              <div class="subj-card"><h5>Фізика</h5><p>«Яка формула виражає другий закон Ньютона?» Варіанти: F = ma (правильно), F = m/a, F = a/m, F = mv</p></div>
+              <div class="subj-card"><h5>Математика</h5><p>«Чому дорівнює похідна функції y = x²?» Варіанти: 2x (правильно), x (забуто показник), x² (похідну не взято), 2</p></div>
+              <div class="subj-card"><h5>Інформатика</h5><p>«Що виведе код: print(7 // 2)?» Варіанти: 3 (правильно), 3.5 (звичайне ділення), 4 (округлення вгору), 2</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.2</span>
+          <div class="step-body">
+            <p class="step-title">Налаштуйте логіку переходів</p>
+            <p>Натисніть три крапки біля питання (внизу праворуч) → <strong>«Перейти до розділу на основі відповіді»</strong>. Далі:</p>
+            <ul>
+              <li>біля <strong>неправильних</strong> варіантів оберіть «Перейти до розділу 3 (Корекція)»</li>
+              <li>біля <strong>правильного</strong> варіанту оберіть «Перейти до розділу 4 (Поглиблений рівень)»</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">3.3</span>
+          <div class="step-body">
+            <p class="step-title">Розділ «Корекція знань»</p>
+            <ul>
+              <li>Додайте пояснення помилки: кнопка <strong>«Додати відео»</strong> (YouTube) або <strong>«Додати зображення»</strong> (схема виведення формули, графік, блок-схема)</li>
+              <li>Додайте просте контрольне питання: «Чи зрозумів ти тепер?»</li>
+            </ul>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+              <p><strong>Обов'язково:</strong> у самому низу Розділу 3 знайдіть налаштування «Після розділу 3» і змініть його на <strong>«Перейти до розділу 4»</strong>. Інакше маршрут за замовчуванням піде не туди, куди ви задумали.</p>
+            </div>
+            <div class="level-block plus">
+              <span class="level-badge plus">+</span>
+              <p>Додайте друге діагностичне питання на іншу типову помилку теми зі своєю гілкою корекції.</p>
+            </div>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Зробіть <strong>різні розділи корекції для різних помилок</strong>. Наприклад, учень, який обрав варіант із плутаниною одиниць, потрапляє в розділ про одиниці, а той, хто переплутав формулу, у розділ про закон. Кожен хибний варіант діагностичного питання може вести до свого розділу. Опишіть у звіті, яку помилку моделює кожна гілка.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- E4 -->
+    <section class="section" id="section-e4">
+      <div class="section-header">
+        <div class="section-icon blue">🧱</div>
+        <div>
+          <p class="section-num">Етап 4</p>
+          <h2 class="section-title">Складні типи питань (Розділ 4)</h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;">Заповніть Розділ 4 «Поглиблений рівень». Використайте Gemini для генерації варіантів і обов'язково перевірте результат вручну.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">4.1</span>
+          <div class="step-body">
+            <p class="step-title">Питання на відповідність (сітка)</p>
+            <p>Оберіть тип <strong>«Таблиця з варіантами»</strong> (або «Сітка з прапорцями»): у рядках ліві частини пар, у стовпцях варіанти правих. Потім «Ключ опитування» і бали за кожен правильний рядок.</p>
+            <div class="subj-grid">
+              <div class="subj-card"><h5>Фізика</h5><p>Формула — величина (F = ma — сила); науковець — закон; величина — одиниця в СІ (сила — ньютон, робота — джоуль)</p></div>
+              <div class="subj-card"><h5>Математика</h5><p>Функція — похідна (sin x — cos x, x² — 2x, eˣ — eˣ); теорема — формулювання (Піфагор — теорема про катети)</p></div>
+              <div class="subj-card"><h5>Інформатика</h5><p>Структура даних — принцип (стек — LIFO, черга — FIFO); алгоритм — складність (бінарний пошук — O(log n), лінійний — O(n))</p></div>
+            </div>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Сітка перевіряє системне мислення: уміння класифікувати формули, величини та зв'язки між ними, на відміну від лінійного вибору «А, Б чи В».</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.2</span>
+          <div class="step-body">
+            <p class="step-title">Перевірка практичних навичок (завантаження файлу)</p>
+            <p>Оберіть тип <strong>«Завантаження файлу»</strong>.</p>
+            <ul>
+              <li><strong>Фізика, математика:</strong> «Розв'яжіть задачу з повним ходом розв'язання у зошиті, сфотографуйте та прикріпіть сюди»</li>
+              <li><strong>Інформатика:</strong> «Напишіть програму для розв'язання задачі. Прикріпіть скриншот коду разом із результатом виконання (або файл із кодом, або фото блок-схеми)»</li>
+            </ul>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ОБМЕЖЕННЯ</span>
+              <p>Це питання вимагає від учня входу в Google-акаунт. Автоматично перевірити його неможливо: хід розв'язання або код перевіряє вчитель вручну (вкладка «Відповіді» → «Окремий респондент»).</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.3</span>
+          <div class="step-body">
+            <p class="step-title">Рефлексія (лінійна шкала)</p>
+            <p>Оберіть тип <strong>«Лінійна шкала»</strong>: «Оцініть свою впевненість у розв'язанні задач цього типу (написанні програм цього типу) від 1 (зовсім не впевнений) до 5 (повністю впевнений)». Бали: 0.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">4.4</span>
+          <div class="step-body">
+            <p class="step-title">Підберіть рівні питань за таксономією Блума</p>
+            <p>Діагностика перевіряє рівень «назвати, впізнати формулу чи правило». Поглиблений рівень має вимагати «застосувати», «проаналізувати», «порівняти», «оцінити метод розв'язання».</p>
+            <div class="level-block star">
+              <span class="level-badge star">★</span>
+              <p>Для кожного питання Розділу 4 зазначте у звіті рівень за таксономією Блума. Додайте питання, де учень має <strong>оцінити</strong> два способи розв'язання (або дві реалізації алгоритму) і обрати кращий.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt-block" style="margin-top:.75rem;">
+        <p class="prompt-label">Промпт для Gemini</p>
+        <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+        <p class="prompt-text">Створи для учнів <em>[клас]</em> класу на тему <em>[ваша тема]</em>:
+1) 5 пар для питання на відповідність (<em>формула / функція / структура даних</em> — <em>пояснення</em>),
+2) 3 розрахункові питання з 4 числовими варіантами відповіді, де хибні варіанти
+   відповідають типовим помилкам.
+Українською мовою. Не пиши розгорнутих пояснень, лише питання, варіанти й правильні відповіді.</p>
+      </div>
+      <div class="warn-block" style="margin-top:.6rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">⚠️</span>
+        <p>Перерахуйте вручну всі числові відповіді й перевірте ключ у формі. ШІ регулярно помиляється саме в обчисленнях, а помилка в ключі тесту вдарить по оцінках учнів.</p>
+      </div>
+    </section>
+
+    <!-- E5 -->
+    <section class="section" id="section-e5">
+      <div class="section-header">
+        <div class="section-icon blue">💬</div>
+        <div>
+          <p class="section-num">Етап 5</p>
+          <h2 class="section-title">Налаштування зворотного зв'язку (Feedback)</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">5.1</span>
+          <div class="step-body">
+            <p class="step-title">Додайте фідбек до тестового питання</p>
+            <p>Поверніться до будь-якого тестового питання → <strong>«Ключ опитування»</strong> → <strong>«Додати фідбек»</strong>. Згенеруйте текст у Gemini:</p>
+            <div class="prompt-block" style="margin-top:.4rem;">
+              <p class="prompt-label">Промпт</p>
+              <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+              <p class="prompt-text">Напиши пояснення для учня, чому відповідь <em>[X]</em> є неправильною
+в контексті теми <em>[тема]</em>, включаючи правильний хід розв'язання
+(для інформатики: правильне виконання коду крок за кроком).
+Тон: підтримуючий. Не більше 5 речень.</p>
+            </div>
+            <p style="margin-top:.5rem; font-size:.875rem; color:var(--ink-2);">Вставте текст у поле фідбеку для неправильних відповідей. Перевірте розрахунок у тексті вручну.</p>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ПЕДАГОГІЧНА ЛОГІКА</span>
+              <p>Розгорнутий коментар із правильним ходом розрахунку перетворює тест із карального інструмента на навчальний. Учень має зрозуміти не лише, що неправильно, а й чому і як розв'язати правильно.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- E6 -->
+    <section class="section" id="section-e6">
+      <div class="section-header">
+        <div class="section-icon green">🏁</div>
+        <div>
+          <p class="section-num">Етап 6</p>
+          <h2 class="section-title">Фіналізація і тестування</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-marker">6.1</span>
+          <div class="step-body">
+            <p class="step-title">Призначте завдання</p>
+            <p>Поверніться в Classroom до вашого завдання → <strong>«Призначити»</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.2</span>
+          <div class="step-body">
+            <p class="step-title">Peer-review</p>
+            <p>Попросіть одногрупника пройти ваш тест і <strong>навмисно зробити помилку</strong> в діагностичному питанні, щоб перевірити, чи перекине його в розділ «Корекція», а потім у розділ 4. Самі пройдіть тест колеги. Щоб зібрати дані для Етапу 7, залучіть до проходження вашого тесту ще 4–5 одногрупників.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">6.3</span>
+          <div class="step-body">
+            <p class="step-title">Імпортуйте оцінки</p>
+            <p>Після проходження натисніть у Classroom кнопку <strong>«Імпортувати оцінки»</strong>. Це не відбувається повністю автоматично. Подивіться результат у журналі.</p>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">📊</span>
+              <p>Зібрані відповіді не просто лежать у журналі: на них можна подивитися як на дані про навчання. Це робимо в Етапі 7.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- E7 -->
+    <section class="section" id="section-e7">
+      <div class="section-header">
+        <div class="section-icon purple">📊</div>
+        <div>
+          <p class="section-num">Етап 7</p>
+          <h2 class="section-title">Learning Analytics: від відповідей до рішень <span class="badge key">АНАЛІТИКА</span></h2>
+        </div>
+      </div>
+      <p style="color:var(--ink-2); font-size:.875rem; margin-bottom:.75rem;"><strong>Learning Analytics</strong> — збір і аналіз даних про навчання, щоб краще розуміти учнів і вчасно їх підтримати. Елементи аналітики ви вже бачили в ЛР №6 (журнал EdPuzzle, звіт Kahoot). Тут ви пройдете повний цикл на власному тесті: від відповідей до конкретного педагогічного рішення.</p>
+
+      <div class="route">
+        <div class="route-box rb-a"><strong>1. Зібрати</strong><span>відповіді учнів</span></div>
+        <div class="route-arrow">→</div>
+        <div class="route-box rb-b"><strong>2. Порахувати</strong><span>3 показники</span></div>
+        <div class="route-arrow">→</div>
+        <div class="route-box rb-c"><strong>3. Інтерпретувати</strong><span>що це означає</span></div>
+        <div class="route-arrow">→</div>
+        <div class="route-box rb-d"><strong>4. Діяти</strong><span>змінити тест або урок</span></div>
+      </div>
+
+      <div class="steps" style="margin-top:.75rem;">
+        <div class="step">
+          <span class="step-marker">7.1</span>
+          <div class="step-body">
+            <p class="step-title">Зберіть дані</p>
+            <p>Переконайтеся, що ваш тест пройшли щонайменше 5 одногрупників. Відкрийте форму → вкладка <strong>«Відповіді»</strong> → <strong>«Зведення»</strong>. Подивіться підсумкові показники (середній бал, медіана, діапазон і розподіл балів, якщо вони відображаються) та діаграму відповідей на діагностичне питання: скільки учнів обрали кожен варіант.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.2</span>
+          <div class="step-body">
+            <p class="step-title">Експортуйте відповіді в Google Таблиці</p>
+            <p>У вкладці «Відповіді» натисніть значок Таблиць (зелений) → <strong>«Пов'язати з Таблицями»</strong> і створіть таблицю. Зробіть <strong>копію аркуша</strong> для аналізу та <strong>видаліть стовпець із прізвищами</strong> учасників.</p>
+            <div class="warn-block" style="margin-top:.5rem;">
+              <span style="font-size:15px; flex-shrink:0; margin-top:1px;">🔒</span>
+              <p>Анонімізація потрібна, перш ніж показувати таблицю будь-кому поза роботою з учнями і тим більше вставляти її в ШІ-інструменти. Аналітика має працювати з показниками групи, а не з іменами.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.3</span>
+          <div class="step-body">
+            <p class="step-title">Розрахуйте три показники</p>
+            <div style="overflow-x:auto;">
+              <table class="tool-table">
+                <thead><tr><th>Показник</th><th>Як порахувати</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-tool">1. Частка правильних відповідей на питання</td><td>У порожній клітинці: <code>=COUNTIF(C2:C20;"правильна відповідь")/COUNTA(C2:C20)</code>, де C2:C20 — стовпець цього питання. Формат клітинки: відсотки</td></tr>
+                  <tr><td class="td-tool">2. Розподіл вибору варіантів діагностичного питання</td><td>COUNTIF для кожного варіанта (так само, як вище) або <em>Вставлення → Зведена таблиця</em> зі стовпцем діагностичного питання. Так видно, яка хибна відповідь найпопулярніша</td></tr>
+                  <tr><td class="td-tool">3. Частка учнів, що потрапили в розділ «Корекція»</td><td>Це учні, які помилилися в діагностичному питанні: <code>= 1 − частка правильних у діагностичному питанні</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tip-block" style="margin-top:.5rem;">
+              <span class="tip-icon">💡</span>
+              <p>Таблиця зберігає текст відповіді, а не позначку «правильно/неправильно», тому у формулі порівнюємо з текстом правильного варіанта. Якщо формула дає помилку, замініть роздільник «;» на «,» (залежить від регіональних налаштувань таблиці) і перевірте, що текст варіанта співпадає символ у символ.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.4</span>
+          <div class="step-body">
+            <p class="step-title">Інтерпретуйте результат</p>
+            <p>Цифра сама по собі нічого не пояснює. Для кожного показника сформулюйте, що він може означати і що з цим робити:</p>
+            <div style="overflow-x:auto;">
+              <table class="tool-table">
+                <thead><tr><th>Що ви бачите</th><th>Що це може означати</th><th>Дія вчителя</th></tr></thead>
+                <tbody>
+                  <tr><td>Низька частка правильних на питання</td><td>Складна тема, а також можлива помилка в питанні чи ключі</td><td>Перевірити формулювання й ключ, повторити тему</td></tr>
+                  <tr><td>Один хибний варіант обирають найчастіше</td><td>Типова хибна уява учнів</td><td>Додати цю помилку в розділ корекції, розібрати на уроці</td></tr>
+                  <tr><td>Багато учнів потрапило в «Корекцію»</td><td>Діагностичне питання надто складне або базу заклали слабо</td><td>Переглянути попередні матеріали й питання</td></tr>
+                  <tr><td>Майже всі відповіли правильно</td><td>Питання не розрізняє учнів</td><td>Ускладнити або замінити</td></tr>
+                  <tr><td>Висока впевненість за шкалою, але багато помилок</td><td>Завищена самооцінка учнів</td><td>Додати завдання на самоперевірку з фідбеком</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="new-block" style="margin-top:.5rem;">
+              <span class="new-badge">ЧЕСНІСТЬ ВИСНОВКІВ</span>
+              <p>На вибірці з 5–10 осіб ваші результати є гіпотезами, а не висновками. У звіті прямо напишіть, що саме можна стверджувати за такими даними, а що ні.</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-marker">7.5</span>
+          <div class="step-body">
+            <p class="step-title">Сформулюйте рішення вчителя</p>
+            <p>Це найважливіший крок: аналітика без дії безглузда. Складіть план із трьох пунктів:</p>
+            <ul>
+              <li><strong>Що змінити в тесті:</strong> питання, ключ, матеріал корекції</li>
+              <li><strong>Що розібрати на уроці:</strong> яка типова помилка потребує обговорення</li>
+              <li><strong>Кому і що запропонувати додатково:</strong> тренажер із ЛР №6, флешкартки з Gemini Notebook (ЛР №5)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-block" style="margin-top:.75rem;">
+        <span style="font-size:15px; flex-shrink:0; margin-top:1px;">🔒</span>
+        <p><strong>Етика аналітики.</strong> Збирайте лише ті дані, які потрібні для підтримки учнів. Повідомте їм, що саме ви аналізуєте і навіщо. Аналітика має допомагати вчителю підтримати учнів, а не карати їх: один тест не є діагнозом.</p>
+      </div>
+
+      <div class="level-block plus">
+        <span class="level-badge plus">+</span>
+        <div style="flex:1;">
+          <p>Вставте <strong>анонімізовану</strong> таблицю в Gemini і попросіть допомогти з інтерпретацією. Потім критично оцініть його відповідь: що він стверджує, чого не можна знати на такій вибірці?</p>
+          <div class="prompt-block" style="margin-top:.5rem;">
+            <p class="prompt-label">Промпт для Gemini</p>
+            <button class="copy-btn" onclick="copyPrompt(this)">Копіювати</button>
+            <p class="prompt-text">Ось анонімізовані результати тесту з теми <em>[тема]</em> (<em>[N]</em> учнів).
+Проаналізуй: які питання найскладніші, які типові помилки видно
+за вибором хибних варіантів і що б ти порадила змінити в тесті.
+Окремо вкажи, які висновки неможливо зробити на такій малій вибірці.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="level-block star">
+        <span class="level-badge star">★</span>
+        <p>Зіставте <strong>шкалу впевненості</strong> (Розділ 4, 1–5) із фактичними результатами тих самих учнів у питаннях Поглибленого рівня. Побудуйте в Таблицях діаграму (<em>Вставлення → Діаграма</em>) і зробіть висновок: чи відповідає впевненість учнів їхнім реальним результатам? Що це означає для вчителя?</p>
+      </div>
+    </section>
+
+    <!-- ЗВІТНІСТЬ -->
+    <section class="section" id="section-report">
+      <div class="section-header">
+        <div class="section-icon green">✅</div>
+        <div>
+          <p class="section-num">Звітність</p>
+          <h2 class="section-title">Що здати у Google Classroom</h2>
+        </div>
+      </div>
+      <p style="font-size:.875rem; color:var(--ink-2); margin-bottom:.5rem;">Викладач має побачити в Classroom завдання з тестом, що містить 4 розділи, логіку переходів та щонайменше 4 різні типи питань із предметним змістом.</p>
+      <ul class="checklist">
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Завдання з тестом у Google Classroom (посилання на форму з доступом для перегляду)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот структури тесту: чотири розділи</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот налаштування переходів діагностичного питання (правильно / помилка)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Мінімум 4 різні типи питань із предметним змістом (діагностичне питання, сітка, завантаження файлу, шкала)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Скріншот фідбеку для неправильної відповіді з правильним ходом розв'язання</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Результат Peer-review: чи перекинуло одногрупника в розділ «Корекція» і скріншот імпортованих оцінок у журналі</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Примітка: які числові відповіді й ключ ви перевірили вручну і що виявилося</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Друге діагностичне питання з гілкою корекції</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai-b">LA</span> Скріншот «Зведення» форми та таблиця з трьома показниками в Google Таблицях (прізвища видалено)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai-b">LA</span> Інтерпретація (3–4 речення) за таблицею «що бачу → що означає → дія» і застереження про малу вибірку</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge ai-b">LA</span> План дій вчителя з трьох пунктів (тест, урок, додаткова підтримка)</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge plus-b">+</span> Інтерпретація від Gemini і ваша критична оцінка її висновків</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Діаграма «впевненість і результат» та висновок</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Окремі розділи корекції для різних типів помилок з поясненням, яку помилку моделює кожна гілка</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span><span class="badge star-b">★</span> Рівні таксономії Блума для питань Розділу 4 і питання на оцінювання двох способів розв'язання</span></li>
+        <li onclick="toggleCheck(this)"><span class="check-box"></span><span>Декларація використання ШІ</span></li>
+      </ul>
+    </section>
+
+    <!-- РЕФЛЕКСІЯ -->
+    <section class="section" id="section-reflect">
+      <div class="section-header">
+        <div class="section-icon purple">💬</div>
+        <div>
+          <p class="section-num">Питання для рефлексії</p>
+          <h2 class="section-title">Подумайте і запишіть</h2>
+        </div>
+      </div>
+      <ol class="reflection-list">
+        <li><span class="ref-num">1</span><span>Чому не можна налаштувати автоперевірку для «Завантаження файлу»? Які альтернативи ручній перевірці рукописного розв'язку або коду ви бачите?</span></li>
+        <li><span class="ref-num">2</span><span>У чому педагогічна цінність питань типу «Сітка» порівняно з лінійним вибором відповіді?</span></li>
+        <li><span class="ref-num">3</span><span>Як розгорнутий фідбек із поясненням помилки перетворює тест із контрольного інструмента на навчальний?</span></li>
+        <li><span class="ref-num">4</span><span>Чим адаптивне розгалуження особливо корисне для вашого предмета, де помилка в базовій формулі чи правилі унеможливлює розв'язання наступних задач теми? Наведіть типову помилку з вашого предмета, яку варто «ловити» в діагностичному питанні.</span></li>
+        <li><span class="ref-num">5</span><span><strong>Підсумок курсу.</strong> Який інструмент із усіх лабораторних робіт виявився найкориснішим для вашого предмета і чому? Який ви б не використовували і чому?</span></li>
+        <li><span class="ref-num">6</span><span><strong>Підсумок курсу.</strong> Які два-три інструменти ви б об'єднали в один сценарій уроку з вашої теми і в якій послідовності? Це добра заготовка для підсумкового проєкту.</span></li>
+        <li><span class="ref-num">7</span><span>Чим аналітика на малій вибірці відрізняється від аналітики на сотнях учнів? Які висновки з вашої таблиці були б ризикованими?</span></li>
+        <li><span class="ref-num">8</span><span>Які дані про учнів доречно збирати, а які ні? Як вчитель може забезпечити приватність і прозорість, щоб аналітика підтримувала, а не контролювала?</span></li>
+      </ol>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="section-faq">
+      <div class="section-header">
+        <div class="section-icon yellow">🛠️</div>
+        <div>
+          <p class="section-num">Довідка</p>
+          <h2 class="section-title">Типові проблеми</h2>
+        </div>
+      </div>
+      <div class="faq">
+        <div class="faq-item">
+          <p class="faq-q">Логіка розгалуження не спрацьовує: учня не перекидає в потрібний розділ</p>
+          <p class="faq-a">Перевірте: (1) розділи створені окремими сторінками кнопкою «Додати розділ», а не просто розділені текстом; (2) перехід задано на рівні відповіді питання («три крапки» → «Перейти до розділу на основі відповіді»), а не на рівні всього розділу; (3) у налаштуванні «Після розділу 3» вручну змінено маршрут за замовчуванням.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">Оцінки не з'являються в журналі Classroom після проходження тесту</p>
+          <p class="faq-a">Переконайтеся, що в налаштуваннях форми увімкнено «Оцінювати як тест», а в Classroom після проходження натиснуто «Імпортувати оцінки». Це не відбувається повністю автоматично.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">Учень не може завантажити файл у відповідь</p>
+          <p class="faq-a">Питання з завантаженням файлу вимагає входу в Google-акаунт. Перевірте, що учень відкриває тест під акаунтом, а не анонімно.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">Формула COUNTIF повертає 0 або помилку</p>
+          <p class="faq-a">Перевірте роздільник у формулі (замініть «;» на «,» або навпаки), діапазон стовпця та те, що текст правильного варіанта в лапках співпадає з відповіддю в таблиці символ у символ, включно з пробілами.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">У таблиці немає стовпця «правильно / неправильно» за питанням</p>
+          <p class="faq-a">Таблиця Форм зберігає відповіді, а не правильність за кожним питанням. Тому частку правильних рахують через COUNTIF за текстом правильного варіанта, а загальний бал дивляться у вкладці «Зведення» або в стовпці балів.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- РЕСУРСИ -->
+    <section class="section" id="section-resources">
+      <div class="section-header">
+        <div class="section-icon blue">🔗</div>
+        <div>
+          <p class="section-num">Корисні ресурси</p>
+          <h2 class="section-title">Посилання та підказки</h2>
+        </div>
+      </div>
+      <ul class="resource-list">
+        <li><span class="res-icon">📝</span><div><a href="https://docs.google.com/forms" target="_blank">Google Forms</a><div style="font-size:.8rem; color:var(--ink-3);">Створення тестів, розділи, логіка переходів, ключ відповідей</div></div></li>
+        <li><span class="res-icon">📊</span><div><a href="https://docs.google.com/spreadsheets" target="_blank">Google Таблиці</a><div style="font-size:.8rem; color:var(--ink-3);">Аналіз відповідей: COUNTIF, зведені таблиці, діаграми</div></div></li>
+        <li><span class="res-icon">🎓</span><div><a href="https://support.google.com/edu/classroom" target="_blank">Довідка Google Classroom</a><div style="font-size:.8rem; color:var(--ink-3);">Завдання з тестом, імпорт оцінок у журнал</div></div></li>
+        <li><span class="res-icon">✦</span><div><a href="https://gemini.google.com" target="_blank">Gemini</a><div style="font-size:.8rem; color:var(--ink-3);">Генерація питань, дистракторів і фідбеку</div></div></li>
+        <li><span class="res-icon">🧮</span><div><a href="https://www.wolframalpha.com" target="_blank">Wolfram Alpha</a><div style="font-size:.8rem; color:var(--ink-3);">Перевірка розрахункових відповідей і ключа тесту</div></div></li>
+      </ul>
+      <div class="tip-block" style="margin-top:1rem;">
+        <span class="tip-icon">💡</span>
+        <p><strong>Таксономія Блума.</strong> Користуйтеся дієсловами таксономії, щоб ставити питання різних рівнів: від «назвати формулу» в діагностиці до «порівняти й оцінити метод розв'язання» в поглибленому рівні.</p>
+      </div>
+      <div class="new-block" style="margin-top:.75rem;">
+        <span class="new-badge">НАСТУПНИЙ КРОК</span>
+        <p>Після цієї роботи ви матимете всі елементи для підсумкового проєкту: середовище, контент, інтерактив, оцінювання. Обирайте для проєкту ті інструменти, що найкраще розв'язують конкретну проблему ваших учнів.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    bar.style.width = Math.min((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+  });
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+  function toggleCheck(li) { li.classList.toggle('done'); }
+  function copyPrompt(btn) {
+    const text = btn.parentElement.querySelector('.prompt-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => btn.textContent = 'Копіювати', 2000);
+    });
+  }
+</script>
+</body>
+</html>
